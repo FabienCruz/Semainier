@@ -28,6 +28,10 @@ def create_app():
     # Initialisation des extensions avec l'application
     db.init_app(app)
     migrate.init_app(app, db)
+
+    # Import des modèles pour que Flask-Migrate les détecte
+    with app.app_context():
+        from app.models import List, Sublist, Activity
     
     # Enregistrement des blueprints (contrôleurs)
     # On les ajoutera au fur et à mesure de leur création
