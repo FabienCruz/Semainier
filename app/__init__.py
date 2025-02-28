@@ -30,13 +30,16 @@ def create_app():
     migrate.init_app(app, db)
 
     # Import des modèles pour que Flask-Migrate les détecte
-    with app.app_context():
-        from app.models import List, Sublist, Activity
+    from app.models import List, Sublist, Activity
     
     # Enregistrement des blueprints (contrôleurs)
-    # On les ajoutera au fur et à mesure de leur création
-    # from app.controllers.home import bp as home_bp
-    # app.register_blueprint(home_bp)
+    from app.controllers.list import bp as list_bp
+    from app.controllers.sublist import bp as sublist_bp
+    from app.controllers.activity import bp as activity_bp
+    
+    app.register_blueprint(list_bp)
+    app.register_blueprint(sublist_bp)
+    app.register_blueprint(activity_bp)
     
     # Simple route pour tester que l'application fonctionne
     @app.route('/hello')
