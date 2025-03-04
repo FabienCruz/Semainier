@@ -1,4 +1,15 @@
-_Suivi/
+# Environnement virtuel
+venv/
 env/
-instance/*.sqlite
-.DS_Store
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*.class
+# Base de données SQLite
+instance/
+# Fichiers de l'environnement
+.env
+.flaskenv
+# Logs et fichiers temporaires
+*.log
+*.tmp
