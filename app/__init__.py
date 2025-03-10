@@ -49,7 +49,3 @@ def create_app():
         return 'Bonjour, le semainier fonctionne!'
     
     return app
-
-"""
-token git: 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
-"""
