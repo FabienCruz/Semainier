@@ -13,3 +13,6 @@ instance/
 # Logs et fichiers temporaires
 *.log
 *.tmp
+# Fichiers de configuration
+*.DS_Store
+_Suivi/
