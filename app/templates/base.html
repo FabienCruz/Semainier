@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Semainier{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3C91E6',
+                        secondary: '#342E37',
+                        success: '#4CAF50',
+                        danger: '#F44336',
+                        warning: '#FFC107',
+                        light: '#F5F5F5'
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.13.1/dist/cdn.min.js"></script>
+    {% block styles %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-primary text-white p-4 shadow-md">
+        <div class="container mx-auto">
+            <h1 class="text-2xl font-bold">Semainier</h1>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Conteneur pour les modales -->
+    <div id="modal-container"></div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

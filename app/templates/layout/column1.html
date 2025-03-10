@@ -1,0 +1,16 @@
+<div>
+    <!-- Conteneur pour les listes -->
+    <div id="lists-container">
+        <p class="text-gray-500">Chargement des listes...</p>
+    </div>
+    
+    <!-- Bouton pour ajouter une nouvelle liste -->
+    <button
+        class="mt-4 bg-primary text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+        hx-get="/lists/create"
+        hx-target="#modal-container"
+        hx-trigger="click"
+    >
+        Ajouter une liste
+    </button>
+</div>

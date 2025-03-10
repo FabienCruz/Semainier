@@ -36,10 +36,12 @@ def create_app():
     from app.controllers.list import bp as list_bp
     from app.controllers.sublist import bp as sublist_bp
     from app.controllers.activity import bp as activity_bp
+    from app.controllers.views import views
     
     app.register_blueprint(list_bp)
     app.register_blueprint(sublist_bp)
     app.register_blueprint(activity_bp)
+    app.register_blueprint(views)
     
     # Simple route pour tester que l'application fonctionne
     @app.route('/hello')
@@ -47,3 +49,7 @@ def create_app():
         return 'Bonjour, le semainier fonctionne!'
     
     return app
+
+"""
+token git: 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
+"""

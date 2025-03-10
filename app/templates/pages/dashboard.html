@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Semainier{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Colonne 1: Listes -->
+    <div class="bg-white p-4 rounded shadow" id="lists-column">
+        <h2 class="text-xl font-bold mb-4">Listes</h2>
+        <!-- Contenu de la colonne des listes -->
+        {% include "layout/column1.html" %}
+    </div>
+    
+    <!-- Colonne 2: Objectifs de la semaine -->
+    <div class="bg-white p-4 rounded shadow" id="objectives-column">
+        <h2 class="text-xl font-bold mb-4">Objectifs de la semaine</h2>
+        <!-- Contenu de la colonne des objectifs -->
+        {% include "layout/column2.html" %}
+    </div>
+    
+    <!-- Colonne 3: Emploi du temps -->
+    <div class="bg-white p-4 rounded shadow" id="schedule-column">
+        <h2 class="text-xl font-bold mb-4">Emploi du temps</h2>
+        <!-- Contenu de la colonne de l'emploi du temps -->
+        {% include "layout/column3.html" %}
+    </div>
+</div>
+{% endblock %}
