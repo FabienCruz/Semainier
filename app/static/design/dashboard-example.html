@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semainier - Dashboard</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Alpine.js pour les interactions -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .column-header {
+            height: 3.5rem;
+        }
+        
+        .column-content {
+            height: calc(100vh - 8rem);
+            overflow-y: auto;
+        }
+        
+        .text-xxs {
+            font-size: 0.65rem;
+            line-height: 1rem;
+        }
+        
+        .time-slot {
+            height: 3rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        /* Masquer la scrollbar sur Chrome, Safari et Opera */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Masquer la scrollbar pour IE, Edge et Firefox */
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE et Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Pour les indicateurs de journée actuelle */
+        .current-day {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Hauteurs des cartes selon durée */
+        .card-s {
+            min-height: 4rem;
+        }
+        
+        .card-m {
+            min-height: 5rem;
+        }
+        
+        .card-l {
+            min-height: 6rem;
+        }
+        
+        /* Effet de survol des cartes */
+        .activity-card {
+            border-left-width: 2px;
+            transition: border-color 0.2s, border-width 0.2s;
+        }
+        
+        .activity-card:hover {
+            border-width: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation principale -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-full mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-xl font-bold text-blue-600">Semainier</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-4 items-center">
+                        <button class="px-3 py-1.5 border-b-2 border-blue-500 text-gray-900 text-sm font-medium">
+                            Dashboard
+                        </button>
+                        <button class="px-3 py-1.5 border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-sm font-medium">
+                            Paramètres
+                        </button>
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                    <div class="text-sm text-gray-500 mr-4">
+                        Semaine du <span class="font-medium">lun 10/03</span> au <span class="font-medium">dim 16/03</span>
+                    </div>
+                    <!-- Bouton "+" principal -->
+                    <div x-data="{ open: false }" class="relative">
+                        <button 
+                            @click="open = !open"
+                            class="bg-blue-500 text-white p-2 rounded-full text-xl font-medium hover:bg-blue-600 shadow-sm">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <!-- Menu dropdown pour ajout -->
+                        <div 
+                            x-show="open" 
+                            @click.away="open = false" 
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            style="display: none;">
+                            <div class="py-1">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-list-ul w-5 text-blue-500"></i>
+                                    <span>Ajouter une liste</span>
+                                </a>
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sitemap w-5 text-blue-500"></i>
+                                    <span>Ajouter une sous-liste</span>
+                                </a>
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-thumbtack w-5 text-blue-500"></i>
+                                    <span>Ajouter une activité</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button type="button" class="bg-white p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu mobile (masqué par défaut) -->
+        <div class="sm:hidden" x-data="{ open: false }" x-show="open" style="display: none;">
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="#" class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 block pl-3 pr-4 py-2 text-base font-medium">
+                    Dashboard
+                </a>
+                <a href="#" class="border-l-4 border-transparent hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 text-base font-medium">
+                    Paramètres
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Container principal -->
+    <div class="max-w-full mx-auto px-2 sm:px-4 md:px-6 py-4">
+        <!-- Contenu principal -->
+        <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+            <!-- Colonne 1: Listes -->
+            <div class="bg-white rounded-lg shadow-md md:w-1/3" x-data="{ active: true }">
+                <!-- En-tête de la colonne -->
+                <div class="column-header p-3 border-b flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Listes</h2>
+                    <div>
+                        <!-- Bouton principal d'ajout pour mobile -->
+                        <div x-data="{ open: false }" class="relative md:hidden">
+                            <button 
+                                @click="open = !open"
+                                class="bg-blue-500 text-white p-1.5 rounded-full text-sm font-medium hover:bg-blue-600 shadow-sm">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <!-- Menu dropdown pour ajout (mobile) -->
+                            <div 
+                                x-show="open" 
+                                @click.away="open = false" 
+                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                                style="display: none;">
+                                <div class="py-1">
+                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-list-ul w-5 text-blue-500"></i>
+                                        <span>Ajouter une liste</span>
+                                    </a>
+                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-sitemap w-5 text-blue-500"></i>
+                                        <span>Ajouter une sous-liste</span>
+                                    </a>
+                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-thumbtack w-5 text-blue-500"></i>
+                                        <span>Ajouter une activité</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Bouton pour réduire/agrandir sur mobile -->
+                        <button class="md:hidden ml-2 p-1 text-gray-500" @click="active = !active">
+                            <i class="fas" :class="active ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Contenu de la colonne -->
+                <div class="column-content p-3 hide-scrollbar" x-show="active">
+                    <!-- Liste "Histoire" -->
+                    <div class="border-l-8 rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" style="border-color: #F9C74F;">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="text-base font-medium">Histoire</span>
+                                <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
+                                    3
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <!-- Menu d'actions avec dropdown -->
+                                <div x-data="{ open: false }" class="relative">
+                                    <button 
+                                        @click="open = !open" 
+                                        class="text-gray-500 hover:text-gray-700 text-sm p-1 rounded-full hover:bg-gray-200"
+                                        title="Actions">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <!-- Dropdown menu -->
+                                    <div 
+                                        x-show="open" 
+                                        @click.away="open = false" 
+                                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                                        style="display: none;">
+                                        <div class="py-1">
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-plus-circle w-5 text-green-500"></i>
+                                                <span>Ajouter une activité</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-sitemap w-5 text-blue-500"></i>
+                                                <span>Ajouter une sous-liste</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-edit w-5 text-blue-500"></i>
+                                                <span>Modifier</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                <i class="fas fa-trash w-5 text-red-500"></i>
+                                                <span>Supprimer</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Bouton développer/réduire conservé séparément -->
+                                <button class="text-gray-500 hover:text-gray-700 text-sm" title="Développer">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sous-liste et activités (masquées par défaut) -->
+                        <div class="mt-2 ml-3 space-y-2 hidden">
+                            <!-- Sous-liste "Recherches" -->
+                            <div class="border-l-4 pl-3 mb-2" style="border-color: #F9C74F;">
+                                <div class="flex justify-between items-center p-2 bg-gray-50 hover:bg-gray-100 rounded-r-md">
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-medium">Recherches</span>
+                                        <span class="ml-1 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
+                                            2
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <!-- Menu d'actions pour sous-liste -->
+                                        <div x-data="{ open: false }" class="relative">
+                                            <button 
+                                                @click="open = !open" 
+                                                class="text-gray-500 hover:text-gray-700 text-sm p-1 rounded-full hover:bg-gray-200"
+                                                title="Actions">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
+                                            <!-- Dropdown menu -->
+                                            <div 
+                                                x-show="open" 
+                                                @click.away="open = false" 
+                                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                                                style="display: none;">
+                                                <div class="py-1">
+                                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        <i class="fas fa-plus-circle w-5 text-green-500"></i>
+                                                        <span>Ajouter une activité</span>
+                                                    </a>
+                                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        <i class="fas fa-edit w-5 text-blue-500"></i>
+                                                        <span>Modifier</span>
+                                                    </a>
+                                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                        <i class="fas fa-trash w-5 text-red-500"></i>
+                                                        <span>Supprimer</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Bouton développer/réduire conservé séparément -->
+                                        <button class="text-gray-500 hover:text-gray-700 text-sm" title="Développer">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activité directement sous la liste principale -->
+                            <div class="activity-card card-s border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #F9C74F;">
+                                <div class="flex items-start">
+                                    <div class="mt-0.5">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    </div>
+                                    <div class="ml-2 flex-grow">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium">Lecture chapitre 5</span>
+                                            <span class="text-xxs text-gray-500">mar 11/03</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Liste "Finance-Boulot" -->
+                    <div class="border-l-8 rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" style="border-color: #E63946;">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="text-base font-medium">Finance-Boulot</span>
+                                <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
+                                    5
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <!-- Menu d'actions avec dropdown -->
+                                <div x-data="{ open: false }" class="relative">
+                                    <button 
+                                        @click="open = !open" 
+                                        class="text-gray-500 hover:text-gray-700 text-sm p-1 rounded-full hover:bg-gray-200"
+                                        title="Actions">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <!-- Dropdown menu -->
+                                    <div 
+                                        x-show="open" 
+                                        @click.away="open = false" 
+                                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                                        style="display: none;">
+                                        <div class="py-1">
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-plus-circle w-5 text-green-500"></i>
+                                                <span>Ajouter une activité</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-sitemap w-5 text-blue-500"></i>
+                                                <span>Ajouter une sous-liste</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-edit w-5 text-blue-500"></i>
+                                                <span>Modifier</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                <i class="fas fa-trash w-5 text-red-500"></i>
+                                                <span>Supprimer</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Bouton développer/réduire -->
+                                <button class="text-gray-500 hover:text-gray-700 text-sm" title="Réduire">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sous-liste et activités (déployées) -->
+                        <div class="mt-2 ml-3 space-y-2">
+                            <!-- Sous-liste "Réunions" -->
+                            <div class="border-l-4 pl-3 mb-2" style="border-color: #E63946;">
+                                <div class="flex justify-between items-center p-2 bg-gray-50 hover:bg-gray-100 rounded-r-md">
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-medium">Réunions</span>
+                                        <span class="ml-1 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
+                                            2
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <!-- Menu d'actions pour sous-liste -->
+                                        <div x-data="{ open: false }" class="relative">
+                                            <button 
+                                                @click="open = !open" 
+                                                class="text-gray-500 hover:text-gray-700 text-sm p-1 rounded-full hover:bg-gray-200"
+                                                title="Actions">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
+                                            <!-- Dropdown menu -->
+                                            <div 
+                                                x-show="open" 
+                                                @click.away="open = false" 
+                                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                                                style="display: none;">
+                                                <div class="py-1">
+                                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        <i class="fas fa-plus-circle w-5 text-green-500"></i>
+                                                        <span>Ajouter une activité</span>
+                                                    </a>
+                                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        <i class="fas fa-edit w-5 text-blue-500"></i>
+                                                        <span>Modifier</span>
+                                                    </a>
+                                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                        <i class="fas fa-trash w-5 text-red-500"></i>
+                                                        <span>Supprimer</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Bouton développer/réduire -->
+                                        <button class="text-gray-500 hover:text-gray-700 text-sm" title="Réduire">
+                                            <i class="fas fa-chevron-up"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Activités de la sous-liste -->
+                                <div class="mt-2 ml-2 space-y-2">
+                                    <!-- Activité de la sous-liste (prioritaire, taille M) -->
+                                    <div class="activity-card card-m border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #E63946;">
+                                        <div class="flex items-start">
+                                            <div class="mt-0.5">
+                                                <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                            </div>
+                                            <div class="ml-2 flex-grow">
+                                                <div class="flex justify-between">
+                                                    <div class="flex items-center">
+                                                        <span class="text-sm font-medium">Réunion d'équipe</span>
+                                                        <span class="ml-1 h-2 w-2 rounded-full bg-red-400"></span>
+                                                    </div>
+                                                    <span class="text-xxs text-gray-500">mer 12/03</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Activité de la sous-liste (taille S) -->
+                                    <div class="activity-card card-s border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #E63946;">
+                                        <div class="flex items-start">
+                                            <div class="mt-0.5">
+                                                <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                            </div>
+                                            <div class="ml-2 flex-grow">
+                                                <div class="flex justify-between">
+                                                    <span class="text-sm font-medium">Point client</span>
+                                                    <span class="text-xxs text-gray-500">mer 12/03</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activité directement sous la liste principale (taille L) -->
+                            <div class="activity-card card-l border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #E63946;">
+                                <div class="flex items-start">
+                                    <div class="mt-0.5">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    </div>
+                                    <div class="ml-2 flex-grow">
+                                        <div class="flex justify-between">
+                                            <div class="flex items-center">
+                                                <span class="text-sm font-medium">Préparer présentation</span>
+                                                <span class="ml-1 h-2 w-2 rounded-full bg-red-400"></span>
+                                            </div>
+                                            <span class="text-xxs text-gray-500">mer 12/03</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Liste "Data" (réduite) -->
+                    <div class="border-l-8 rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" style="border-color: #7209B7;">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="text-base font-medium">Data</span>
+                                <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
+                                    4
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <!-- Menu d'actions avec dropdown -->
+                                <div x-data="{ open: false }" class="relative">
+                                    <button 
+                                        @click="open = !open" 
+                                        class="text-gray-500 hover:text-gray-700 text-sm p-1 rounded-full hover:bg-gray-200"
+                                        title="Actions">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <!-- Dropdown menu -->
+                                    <div 
+                                        x-show="open" 
+                                        @click.away="open = false" 
+                                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                                        style="display: none;">
+                                        <div class="py-1">
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-plus-circle w-5 text-green-500"></i>
+                                                <span>Ajouter une activité</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-sitemap w-5 text-blue-500"></i>
+                                                <span>Ajouter une sous-liste</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <i class="fas fa-edit w-5 text-blue-500"></i>
+                                                <span>Modifier</span>
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                <i class="fas fa-trash w-5 text-red-500"></i>
+                                                <span>Supprimer</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Bouton développer/réduire -->
+                                <button class="text-gray-500 hover:text-gray-700 text-sm" title="Développer">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Colonne 2: Objectifs de la semaine -->
+            <div class="bg-white rounded-lg shadow-md md:w-1/3" x-data="{ active: true }">
+                <!-- En-tête de la colonne -->
+                <div class="column-header p-3 border-b flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Objectifs de la semaine</h2>
+                    <div>
+                        <span class="text-xs text-gray-500">12/24</span>
+                        <button class="md:hidden ml-2 p-1 text-gray-500" @click="active = !active">
+                            <i class="fas" :class="active ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Contenu de la colonne -->
+                <div class="column-content" x-show="active">
+                    <!-- Section priorités -->
+                    <div class="border-b pb-3">
+                        <div class="p-3">
+                            <h3 class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                                <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full mr-2">Priorités</span>
+                                <span class="text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">6</span>
+                            </h3>
+                            
+                            <div class="space-y-2">
+                                <!-- Activité prioritaire (M) -->
+                                <div class="activity-card card-m border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #E63946;">
+                                    <div class="flex items-start">
+                                        <div class="mt-0.5">
+                                            <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                        </div>
+                                        <div class="ml-2 flex-grow">
+                                            <div class="flex justify-between">
+                                                <div class="flex items-center">
+                                                    <span class="text-sm font-medium">Réunion d'équipe</span>
+                                                    <span class="ml-1 h-2 w-2 rounded-full bg-red-400"></span>
+                                                </div>
+                                                <span class="text-xxs text-gray-500">mer 12/03</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Activité prioritaire (L) -->
+                                <div class="activity-card card-l border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #E63946;">
+                                    <div class="flex items-start">
+                                        <div class="mt-0.5">
+                                            <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                        </div>
+                                        <div class="ml-2 flex-grow">
+                                            <div class="flex justify-between">
+                                                <div class="flex items-center">
+                                                    <span class="text-sm font-medium">Préparer présentation</span>
+                                                    <span class="ml-1 h-2 w-2 rounded-full bg-red-400"></span>
+                                                </div>
+                                                <span class="text-xxs text-gray-500">mer 12/03</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section activités standard -->
+                    <div class="p-3">
+                        <h3 class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-calendar-week text-blue-500 mr-2"></i>
+                            <span>Activités</span>
+                            <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">6</span>
+                        </h3>
+                        
+                        <div class="space-y-2">
+                            <!-- Activité standard (S) -->
+                            <div class="activity-card card-s border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #F9C74F;">
+                                <div class="flex items-start">
+                                    <div class="mt-0.5">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    </div>
+                                    <div class="ml-2 flex-grow">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium">Lecture chapitre 5</span>
+                                            <span class="text-xxs text-gray-500">jeu 13/03</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activité standard (M) -->
+                            <div class="activity-card card-m border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #7209B7;">
+                                <div class="flex items-start">
+                                    <div class="mt-0.5">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    </div>
+                                    <div class="ml-2 flex-grow">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium">Analyse des données</span>
+                                            <span class="text-xxs text-gray-500">jeu 13/03</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activité standard (S) -->
+                            <div class="activity-card card-s border rounded p-2 bg-white hover:bg-gray-50 shadow-sm" style="border-left-color: #E63946;">
+                                <div class="flex items-start">
+                                    <div class="mt-0.5">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    </div>
+                                    <div class="ml-2 flex-grow">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium">Point client</span>
+                                            <span class="text-xxs text-gray-500">mer 12/03</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activité terminée (M) -->
+                            <div class="activity-card card-m border rounded p-2 bg-gray-50 hover:bg-gray-100 shadow-sm" style="border-left-color: #FF9F1C;">
+                                <div class="flex items-start">
+                                    <div class="mt-0.5">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" checked>
+                                    </div>
+                                    <div class="ml-2 flex-grow">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-medium line-through text-gray-400">Courses alimentaires</span>
+                                            <span class="text-xxs text-gray-400">mar 11/03</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!-- Colonne 3: Emploi du temps -->
+<div class="bg-white rounded-lg shadow-md md:w-1/3" x-data="{ active: true, currentDay: 2 }">
+    <!-- En-tête de la colonne -->
+    <div class="column-header p-3 border-b flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-800">Emploi du temps</h2>
+        <div class="flex items-center">
+            <button class="p-1 text-gray-500 hover:text-gray-700" @click="currentDay = Math.max(0, currentDay - 1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="text-sm font-medium mx-2">mer 12/03</span>
+            <button class="p-1 text-gray-500 hover:text-gray-700" @click="currentDay = Math.min(6, currentDay + 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <button class="md:hidden ml-2 p-1 text-gray-500" @click="active = !active">
+                <i class="fas" :class="active ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Contenu de la colonne -->
+    <div class="column-content hide-scrollbar" x-show="active">
+        <!-- Grille de l'emploi du temps -->
+        <div class="h-full">
+            <!-- Plages horaires avec activités -->
+            <div>
+                <!-- 9h00 - 9h30 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">9:00</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- 9h30 - 10h00 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">9:30</div>
+                    <div class="flex-grow p-1">
+                        <!-- Activité dans la plage horaire -->
+                        <div class="activity-card border rounded p-1 bg-white shadow-sm text-xs" style="border-left-color: #E63946;">
+                            <div class="font-medium">Point client</div>
+                            <div class="text-xxs text-gray-500">30min</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 10h00 - 10h30 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">10:00</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- 10h30 - 11h00 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">10:30</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- 11h00 - 11h30 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">11:00</div>
+                    <div class="flex-grow p-1">
+                        <!-- Activité dans la plage horaire (début d'une activité moyenne 1h30) -->
+                        <div class="activity-card border rounded p-1 bg-white shadow-sm text-xs" style="border-left-color: #E63946;">
+                            <div class="flex items-center">
+                                <div class="font-medium flex-grow">Réunion d'équipe</div>
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                            </div>
+                            <div class="text-xxs text-gray-500">1h30</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 11h30 - 12h00 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">11:30</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- 12h00 - 12h30 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">12:00</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- 12h30 - 13h00 -->
+                <div class="time-slot flex bg-gray-50">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">12:30</div>
+                    <div class="flex-grow p-1">
+                        <div class="text-xxs text-center text-gray-500 italic">Pause déjeuner</div>
+                    </div>
+                </div>
+                
+                <!-- 13h00 - 13h30 -->
+                <div class="time-slot flex bg-gray-50">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">13:00</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- 13h30 - 14h00 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">13:30</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- 14h00 - 14h30 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">14:00</div>
+                    <div class="flex-grow p-1">
+                        <!-- Activité dans la plage horaire (début d'une activité longue 3h) -->
+                        <div class="activity-card border rounded p-1 bg-white shadow-sm text-xs" style="border-left-color: #E63946;">
+                            <div class="flex items-center">
+                                <div class="font-medium flex-grow">Préparer présentation</div>
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                            </div>
+                            <div class="text-xxs text-gray-500">3h</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 14h30 - 15h00 -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">14:30</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <!-- Autres plages horaires... -->
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">15:00</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">15:30</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">16:00</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">16:30</div>
+                    <div class="flex-grow"></div>
+                </div>
+                
+                <div class="time-slot flex">
+                    <div class="w-14 text-xs text-gray-500 p-1 border-r">17:00</div>
+                    <div class="flex-grow"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Exemple de Modal (masqué par défaut) -->
+<div id="modal-container" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" style="display: none;">
+<div class="bg-white rounded-lg shadow-xl max-w-md mx-auto p-4">
+<div class="flex justify-between items-center border-b pb-3 mb-4">
+    <h3 class="text-lg font-semibold text-gray-900">Créer une activité</h3>
+    <button class="text-gray-400 hover:text-gray-500">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<form class="space-y-4">
+    <!-- Titre de l'activité -->
+    <div>
+        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titre de l'activité</label>
+        <input
+            type="text"
+            name="title"
+            id="title"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Entrez un titre"
+            maxlength="255">
+    </div>
+    
+    <!-- Liste -->
+    <div>
+        <label for="list_id" class="block text-sm font-medium text-gray-700 mb-1">Liste</label>
+        <select
+            name="list_id"
+            id="list_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Sélectionnez une liste</option>
+            <option value="1">Histoire</option>
+            <option value="2" selected>Finance-Boulot</option>
+            <option value="3">Maison</option>
+            <option value="4">Data</option>
+            <option value="5">Voyages</option>
+            <option value="6">Santé</option>
+        </select>
+    </div>
+    
+    <!-- Sous-liste -->
+    <div>
+        <label for="sublist_id" class="block text-sm font-medium text-gray-700 mb-1">Sous-liste (optionnel)</label>
+        <select
+            name="sublist_id"
+            id="sublist_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Aucune sous-liste</option>
+            <option value="1">Réunions</option>
+            <option value="2">Rapports</option>
+        </select>
+    </div>
+    
+    <!-- Durée -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Durée</label>
+        <div class="flex space-x-4">
+            <label class="inline-flex items-center">
+                <input type="radio" name="duration" value="S" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                <span class="ml-1 text-sm font-light">Court (30min)</span>
+            </label>
+            <label class="inline-flex items-center">
+                <input type="radio" name="duration" value="M" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
+                <span class="ml-1 text-sm font-medium">Moyen (1h30)</span>
+            </label>
+            <label class="inline-flex items-center">
+                <input type="radio" name="duration" value="L" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                <span class="ml-1 text-sm font-bold">Long (3h)</span>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Échéance -->
+    <div>
+        <label for="due_date" class="block text-sm font-medium text-gray-700 mb-1">Échéance</label>
+        <input
+            type="date"
+            name="due_date"
+            id="due_date"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            value="2025-03-14">
+    </div>
+    
+    <!-- Options supplémentaires -->
+    <div class="flex items-center space-x-4">
+        <label class="inline-flex items-center">
+            <input type="checkbox" name="priority" class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+            <span class="ml-1 text-sm">Priorité</span>
+        </label>
+        <label class="inline-flex items-center">
+            <input type="checkbox" name="is_template" class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+            <span class="ml-1 text-sm">Modèle</span>
+        </label>
+    </div>
+    
+    <!-- Boutons d'action -->
+    <div class="flex justify-end space-x-2 pt-3 border-t">
+        <button
+            type="button"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
+            Annuler
+        </button>
+        <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Créer
+        </button>
+    </div>
+</form>
+</div>
+</div>
+</body>
+</html>
+
+
+
+<!--
+
+MODIFICATIONS A APPORTER:
+
+- icônes pour toute l'application:
+    - ref. fontawesome : 
+    - activités = calendar-week, 
+    - sous-listes = sitemap, 
+    - liste = list
+
+- bouton "+" (ajouter liste/ sous-liste/ activité):
+    - doit être rond, avec fond bleu et icône +
+    - un dans le navigateur, en haut à droite
+    - un dans la colonne liste, en haut à droite
+    - un dans la colonne objectifs, en haut à droite
+    - un dans la colonne emploi du temps, en haut à droite
+
+- Barre de navigation :
+    - enlever l'indication de la semaine en cours
+ 
+- Colonne "Objectifs de la semaine":
+    - Titre : "Objectifs du 12 au 18 mars" (modifié en fonction de la semaine en cours)
+    - Sous-titre: "12/24" (modifié en fonction du nombre d'unité dans la colonne et une limite d'unité par semaine)
+
+- Colonne "Emploi du temps":
+    - Titre : "< Mer 12/03 >" (modifié en fonction du jour en cours, avec flèches de navigation)
+    - enlever "Emploi du temps" de l'en-tête
+    - revoir la grille horaire
+
+- Carte d'activité
+    - à gauche: la case à cocher statut (terminé ou non)
+    - milieu aligné à gauche: libellé de l'activité / en dessous (plus petit, en gris): l'échéance
+    - à droite: icône de priorité (si prioritaire)
+    - taille: S = 1 unité, M = 3 unités, L = 6 unités
+
+-->
