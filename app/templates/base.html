@@ -4,41 +4,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Semainier{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3C91E6',
-                        secondary: '#342E37',
-                        success: '#4CAF50',
-                        danger: '#F44336',
-                        warning: '#FFC107',
-                        light: '#F5F5F5'
-                    }
-                }
-            }
-        }
-    </script>
+    
+    <!-- Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.13.1/dist/cdn.min.js"></script>
-    {% block styles %}{% endblock %}
+    
+    <!-- Alpine.js pour les interactions -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .column-header {
+            height: 3.5rem;
+        }
+        
+        .column-content {
+            height: calc(100vh - 8rem);
+            overflow-y: auto;
+        }
+        
+        .text-xxs {
+            font-size: 0.65rem;
+            line-height: 1rem;
+        }
+        
+        .time-slot {
+            height: 3rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        /* Masquer la scrollbar sur Chrome, Safari et Opera */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Masquer la scrollbar pour IE, Edge et Firefox */
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE et Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Pour les indicateurs de journée actuelle */
+        .current-day {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Hauteurs des cartes selon durée */
+        .card-s {
+            min-height: 4rem;
+        }
+        
+        .card-m {
+            min-height: 5rem;
+        }
+        
+        .card-l {
+            min-height: 6rem;
+        }
+        
+        /* Effet de survol des cartes */
+        .activity-card {
+            border-left-width: 2px;
+            transition: border-color 0.2s, border-width 0.2s;
+        }
+        
+        .activity-card:hover {
+            border-width: 2px;
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-primary text-white p-4 shadow-md">
-        <div class="container mx-auto">
-            <h1 class="text-2xl font-bold">Semainier</h1>
+<body class="bg-gray-100">
+    <!-- Navigation principale -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-full mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-xl font-bold text-blue-600">Semainier</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-4 items-center">
+                        <a href="{{ url_for('views.dashboard') }}" class="px-3 py-1.5 border-b-2 {% if request.path == url_for('views.dashboard') %}border-blue-500 text-gray-900{% else %}border-transparent text-gray-500 hover:text-gray-700{% endif %} text-sm font-medium">
+                            Dashboard
+                        </a>
+                        <a href="{{ url_for('views.settings') }}" class="px-3 py-1.5 border-b-2 {% if request.path == url_for('views.settings') %}border-blue-500 text-gray-900{% else %}border-transparent text-gray-500 hover:text-gray-700{% endif %} text-sm font-medium">
+                            Paramètres
+                        </a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button type="button" class="bg-white p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none" x-data @click="$dispatch('mobile-menu-toggle')">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-    </header>
-
-    <main class="container mx-auto p-4">
+        
+        <!-- Menu mobile (masqué par défaut) -->
+        <div class="sm:hidden" x-data="{ open: false }" x-show="open" x-on:mobile-menu-toggle.window="open = !open" x-transition>
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="{{ url_for('views.dashboard') }}" class="{% if request.path == url_for('views.dashboard') %}bg-blue-50 border-l-4 border-blue-500 text-blue-700{% else %}border-l-4 border-transparent hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700{% endif %} block pl-3 pr-4 py-2 text-base font-medium">
+                    Dashboard
+                </a>
+                <a href="{{ url_for('views.settings') }}" class="{% if request.path == url_for('views.settings') %}bg-blue-50 border-l-4 border-blue-500 text-blue-700{% else %}border-l-4 border-transparent hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700{% endif %} block pl-3 pr-4 py-2 text-base font-medium">
+                    Paramètres
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Contenu principal -->
+    <div class="max-w-full mx-auto px-2 sm:px-4 md:px-6 py-4">
         {% block content %}{% endblock %}
-    </main>
-
-    <!-- Conteneur pour les modales -->
+    </div>
+    
+    <!-- Zone pour les modals -->
     <div id="modal-container"></div>
-
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>
