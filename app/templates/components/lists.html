@@ -2,7 +2,7 @@
 {% if lists %}
     {% for list_item in lists %}
         <div class="border-l-8 rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
-             style="border-color: {{ list_item.color_code }};"
+             style="border-color: { list_item.color_code };"
              x-data="{ expanded: false }">
             <div class="flex justify-between items-center">
                 <div class="flex items-center">

@@ -35,9 +35,9 @@ def get_list(list_id):
     activities = Activity.query.filter_by(list_id=list_id, sublist_id=None).all()
     
     return render_template(
-        'components/list_item.html', 
-        list_item=list_item, 
-        sublists=sublists, 
+        'components/list_container.html',  # Utilise le nouveau template
+        list_item=list_item,
+        sublists=sublists,
         activities=activities
     )
 

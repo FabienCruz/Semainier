@@ -58,7 +58,7 @@
             </div>
             <!-- Bouton développer/réduire -->
             <button class="text-gray-500 hover:text-gray-700 text-sm" 
-                    @click="expanded = !expanded" 
+                    @click="expanded = !expanded; $nextTick(() => { if(expanded) $dispatch('htmx:load', {target: '#list-content-{{ list_item.id }}'}); })" 
                     x-bind:title="expanded ? 'Réduire' : 'Développer'">
                 <i class="fas" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
             </button>
@@ -69,7 +69,7 @@
     <div class="mt-2 ml-3 space-y-2" x-show="expanded" x-transition>
         <div id="list-content-{{ list_item.id }}" 
              hx-get="{{ url_for('views.get_list', list_id=list_item.id) }}" 
-             hx-trigger="load" 
+             hx-trigger="htmx:load from:this once" 
              hx-swap="innerHTML">
             <!-- Indicateur de chargement -->
             <div class="flex justify-center items-center p-2">
