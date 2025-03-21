@@ -19,15 +19,24 @@
                     class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
                     x-transition>
                     <div class="py-1">
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="open = false; $dispatch('htmx:trigger', {trigger: 'createListModal'})">
+                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                           @click="open = false"
+                           hx-get="{{ url_for('views.get_list_form') }}"
+                           hx-target="#modal-container">
                             <i class="fas fa-list w-5 text-blue-500"></i>
                             <span>Ajouter une liste</span>
                         </a>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="open = false; $dispatch('htmx:trigger', {trigger: 'createSublistModal'})">
+                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                           @click="open = false"
+                           hx-get="{{ url_for('views.get_sublist_form') }}"
+                           hx-target="#modal-container">
                             <i class="fas fa-sitemap w-5 text-blue-500"></i>
                             <span>Ajouter une sous-liste</span>
                         </a>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="open = false; $dispatch('htmx:trigger', {trigger: 'createActivityModal'})">
+                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                           @click="open = false"
+                           hx-get="{{ url_for('views.get_activity_form') }}"
+                           hx-target="#modal-container">
                             <i class="fas fa-calendar-week w-5 text-blue-500"></i>
                             <span>Ajouter une activité</span>
                         </a>
@@ -44,7 +53,10 @@
     <!-- Contenu de la colonne -->
     <div class="column-content p-3 hide-scrollbar" x-show="active">
         <!-- Le contenu dynamique des listes sera injecté ici -->
-        <div id="lists-container" hx-get="{{ url_for('views.get_lists') }}" hx-trigger="load" hx-swap="innerHTML">
+        <div id="lists-container" 
+             hx-get="{{ url_for('views.get_lists') }}" 
+             hx-trigger="load, refresh from:body" 
+             hx-swap="innerHTML">
             <!-- Indicateur de chargement -->
             <div class="flex justify-center items-center p-4">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

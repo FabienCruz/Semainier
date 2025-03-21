@@ -1,0 +1,88 @@
+<!-- app/templates/modals/create_edit_list_modal.html -->
+{% extends "base_modal.html" %}
+
+{% block modal_content %}
+<form id="list-form" 
+      hx-post="{{ url_for('list.create_list') if not list_id else url_for('list.update_list', id=list_id) }}"
+      hx-swap="none"
+      hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
+    
+    <!-- Champ caché pour l'ID en cas d'édition -->
+    {% if list_id %}
+    <input type="hidden" name="id" value="{{ list_id }}">
+    {% endif %}
+    
+    <!-- Nom de la liste -->
+    <div class="mb-4">
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nom de la liste</label>
+        <input type="text" 
+               id="name" 
+               name="name" 
+               value="{% if list is defined %}{{ list.name }}{% endif %}"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+               required 
+               maxlength="50">
+        <p class="mt-1 text-xs text-gray-500">Maximum 50 caractères</p>
+    </div>
+    
+    <!-- Couleur de la liste -->
+    <div class="mb-6">
+        <label for="color_code" class="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
+        <div class="flex items-center space-x-2">
+            <input type="color" 
+                   id="color_code" 
+                   name="color_code" 
+                   value="{% if list is defined and list.color_code %}{{ list.color_code }}{% else %}#3C91E6{% endif %}"
+                   class="h-8 w-8 rounded cursor-pointer">
+            <input type="text" 
+                   id="color_code_text"
+                   onchange="document.getElementById('color_code').value = this.value"
+                   value="{% if list is defined and list.color_code %}{{ list.color_code }}{% else %}#3C91E6{% endif %}"
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="#3C91E6">
+        </div>
+    </div>
+    
+    <!-- Message d'erreur (initialement caché) -->
+    <div id="error-message" class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-md hidden">
+        Une erreur est survenue. Veuillez réessayer.
+    </div>
+    
+    <!-- Boutons d'action -->
+    <div class="flex justify-end space-x-2 pt-4 border-t">
+        <button type="button" 
+                onclick="document.getElementById('modal-container').innerHTML = ''"
+                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Annuler
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            {{ 'Enregistrer' if list_id else 'Créer' }}
+        </button>
+    </div>
+</form>
+
+<script>
+// Synchroniser les champs de couleur
+document.getElementById('color_code').addEventListener('input', function() {
+    document.getElementById('color_code_text').value = this.value;
+});
+
+// Gérer les erreurs HTMX
+document.addEventListener('htmx:responseError', function(event) {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.classList.remove('hidden');
+    
+    try {
+        const response = JSON.parse(event.detail.xhr.responseText);
+        if (response.message) {
+            errorDiv.textContent = response.message;
+        } else {
+            errorDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+        }
+    } catch (e) {
+        errorDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+    }
+});
+</script>
+{% endblock %}
