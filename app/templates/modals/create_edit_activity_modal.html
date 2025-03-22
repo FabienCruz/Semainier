@@ -1,0 +1,183 @@
+<!-- app/templates/modals/create_edit_activity_modal.html -->
+{% extends "base_modal.html" %}
+
+{% block modal_content %}
+<form id="activity-form" 
+      hx-post="{{ url_for('activity.create_activity') if not activity_id else url_for('activity.update_activity', id=activity_id) }}"
+      hx-swap="none"
+      hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
+    
+    <!-- Champ caché pour l'ID en cas d'édition -->
+    {% if activity_id %}
+    <input type="hidden" name="id" value="{{ activity_id }}">
+    {% endif %}
+    
+    <!-- Titre de l'activité -->
+    <div class="mb-4">
+        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titre de l'activité</label>
+        <input type="text" 
+               id="title" 
+               name="title" 
+               value="{% if activity is defined %}{{ activity.title }}{% endif %}"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+               required 
+               maxlength="255">
+        <p class="mt-1 text-xs text-gray-500">Maximum 255 caractères</p>
+    </div>
+    
+    <!-- Sélecteur de liste -->
+    <div class="mb-4">
+        <label for="list_id" class="block text-sm font-medium text-gray-700 mb-1">Liste</label>
+        <select id="list_id" 
+                name="list_id" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                required
+                hx-get="{{ url_for('views.get_sublists_for_list') }}"
+                hx-target="#sublist_id"
+                hx-trigger="change"
+                hx-include="[name='list_id']">
+            <option value="" disabled {% if not selected_list_id and not activity %}selected{% endif %}>Sélectionner une liste...</option>
+            {% for list in lists %}
+            <option value="{{ list.id }}" 
+                    {% if (selected_list_id and selected_list_id == list.id) or 
+                          (activity and activity.list_id == list.id) %}
+                    selected
+                    {% endif %}>
+                {{ list.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <!-- Sélecteur de sous-liste (chargé dynamiquement) -->
+    <div class="mb-4">
+        <label for="sublist_id" class="block text-sm font-medium text-gray-700 mb-1">Sous-liste (optionnel)</label>
+        <select id="sublist_id" 
+                name="sublist_id" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Aucune sous-liste</option>
+            {% if sublists %}
+                {% for sublist in sublists %}
+                <option value="{{ sublist.id }}" 
+                        {% if activity and activity.sublist_id == sublist.id %}selected{% endif %}>
+                    {{ sublist.name }}
+                </option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
+    
+    <!-- Durée de l'activité -->
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Durée</label>
+        <div class="flex space-x-4">
+            <label class="inline-flex items-center">
+                <input type="radio" 
+                       name="duration" 
+                       value="S" 
+                       class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                       {% if activity is not defined or activity.duration.value == 'S' %}checked{% endif %}>
+                <span class="ml-1 text-sm font-light">Court (30min)</span>
+            </label>
+            <label class="inline-flex items-center">
+                <input type="radio" 
+                       name="duration" 
+                       value="M" 
+                       class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                       {% if activity is defined and activity.duration.value == 'M' %}checked{% endif %}>
+                <span class="ml-1 text-sm font-medium">Moyen (1h30)</span>
+            </label>
+            <label class="inline-flex items-center">
+                <input type="radio" 
+                       name="duration" 
+                       value="L" 
+                       class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                       {% if activity is defined and activity.duration.value == 'L' %}checked{% endif %}>
+                <span class="ml-1 text-sm font-bold">Long (3h)</span>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Date d'échéance -->
+    <div class="mb-4">
+        <label for="due_date" class="block text-sm font-medium text-gray-700 mb-1">Échéance</label>
+        <input type="date" 
+               id="due_date" 
+               name="due_date" 
+               value="{% if activity is defined and activity.due_date %}{{ activity.due_date.isoformat() }}{% endif %}"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+    
+    <!-- Boutons de raccourci pour l'échéance -->
+    <div class="mb-4 flex flex-wrap gap-2">
+        <button type="button" 
+                class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xs"
+                onclick="setCurrentWeekDueDate()">
+            <i class="fas fa-calendar-week mr-1"></i>Semaine en cours
+        </button>
+        <button type="button" 
+                class="px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-400 text-xs"
+                onclick="setNextWeekDueDate()">
+            <i class="fas fa-calendar-alt mr-1"></i>Semaine prochaine
+        </button>
+    </div>
+    
+    <!-- Options supplémentaires -->
+    <div class="mb-6 flex flex-wrap gap-4">
+        <label class="inline-flex items-center">
+            <input type="checkbox" 
+                   name="is_priority" 
+                   value="true"
+                   {% if activity is defined and activity.is_priority %}checked{% endif %}
+                   class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+            <span class="ml-1 text-sm">Priorité</span>
+        </label>
+        <label class="inline-flex items-center">
+            <input type="checkbox" 
+                   name="is_template" 
+                   value="true"
+                   {% if activity is defined and activity.is_template %}checked{% endif %}
+                   class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+            <span class="ml-1 text-sm">Modèle</span>
+        </label>
+    </div>
+    
+    <!-- Message d'erreur (initialement caché) -->
+    <div id="error-message" class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-md hidden">
+        Une erreur est survenue. Veuillez réessayer.
+    </div>
+    
+    <!-- Boutons d'action -->
+    <div class="flex justify-end space-x-2 pt-4 border-t">
+        <button type="button" 
+                onclick="document.getElementById('modal-container').innerHTML = ''"
+                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Annuler
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            {{ 'Enregistrer' if activity_id else 'Créer' }}
+        </button>
+    </div>
+</form>
+
+<!-- Remarque: les fonctions de date sont maintenant importées via le fichier date_utils.js -->
+<script>
+// Gestionnaire pour afficher les erreurs HTMX
+document.addEventListener('htmx:responseError', function(event) {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.classList.remove('hidden');
+    
+    try {
+        const response = JSON.parse(event.detail.xhr.responseText);
+        if (response.error) {
+            errorDiv.textContent = response.error;
+        } else {
+            errorDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+        }
+    } catch (e) {
+        errorDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+    }
+});
+</script>
+{% endblock %}

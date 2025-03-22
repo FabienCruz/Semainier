@@ -1,0 +1,7 @@
+<!-- app/templates/components/sublist_options.html -->
+<option value="">Aucune sous-liste</option>
+{% for sublist in sublists %}
+<option value="{{ sublist.id }}" {% if selected_sublist_id and selected_sublist_id == sublist.id %}selected{% endif %}>
+    {{ sublist.name }}
+</option>
+{% endfor %}

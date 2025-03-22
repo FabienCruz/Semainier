@@ -1,10 +1,11 @@
 <!-- app/templates/components/list_item.html -->
-<div class="border-l-8 rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
-     style="border-color: {{ list_item.color_code }};"
+<div class="rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
+     style="border-left: 8px solid red; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
      x-data="{ expanded: false }">
     <div class="flex justify-between items-center">
         <div class="flex items-center">
             <span class="text-base font-medium">{{ list_item.name }}</span>
+            <span class="text-xs text-gray-500">(Couleur: {{ list_item.color_code or 'non définie' }})</span>
             <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
                 {{ list_item.activities|length }}
             </span>

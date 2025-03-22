@@ -1,6 +1,6 @@
 # app/controllers/views.py
 
-from flask import Blueprint, render_template, jsonify, url_for, abort
+from flask import Blueprint, render_template, url_for, abort, request
 from app.models.list import List
 from app.models.sublist import Sublist
 from app.models.activity import Activity
@@ -93,6 +93,25 @@ def edit_sublist_form(sublist_id):
                           sublist=sublist,
                           lists=lists,
                           sublist_id=sublist_id)
+
+@views.route('/api/sublists-for-list')
+def get_sublists_for_list():
+    """Endpoint AJAX pour récupérer les sous-listes d'une liste spécifique."""
+    list_id = request.args.get('list_id', type=int)
+    if not list_id:
+        return render_template('components/sublist_options.html', sublists=[])
+    
+    # Récupérer les sous-listes correspondant à la liste sélectionnée
+    sublists = Sublist.query.filter_by(list_id=list_id).all()
+    
+    # Récupérer la sous-liste actuellement sélectionnée si présente dans la requête
+    selected_sublist_id = request.args.get('sublist_id', type=int)
+    
+    return render_template(
+        'components/sublist_options.html', 
+        sublists=sublists,
+        selected_sublist_id=selected_sublist_id
+    )
 
 # ===== Routes pour les modales d'Activité =====
 

@@ -2,6 +2,7 @@
 
 from flask import request
 from functools import wraps
+from datetime import datetime
 
 def parse_request_data(f):
     """
@@ -57,14 +58,31 @@ def _convert_common_types(data):
     int_fields = ['id', 'list_id', 'sublist_id', 'position']
     
     for field in int_fields:
-        if field in data and isinstance(data[field], str) and data[field].isdigit():
-            data[field] = int(data[field])
+        if field in data:
+            if isinstance(data[field], str):
+                if data[field].isdigit():
+                    data[field] = int(data[field])
+                elif data[field] == '':  # Traiter les chaînes vides
+                    data[field] = None   # Convertir en None pour les champs optionnels
     
     # Liste des champs qui doivent être convertis en booléens
-    bool_fields = ['is_priority', 'is_model', 'is_completed']
+    bool_fields = ['is_priority', 'is_template', 'is_completed', 'is_active']
     
     for field in bool_fields:
         if field in data:
             if isinstance(data[field], str):
                 # Conversion des chaînes en booléens
                 data[field] = data[field].lower() in ('true', 'yes', 'y', '1', 'on')
+    
+    # Liste des champs qui doivent être convertis en dates
+    date_fields = ['due_date', 'created_at', 'updated_at', 'completed_at']
+    
+    for field in date_fields:
+        if field in data and data[field] and isinstance(data[field], str):
+            try:
+                # Essai de conversion au format ISO (YYYY-MM-DD)
+                data[field] = datetime.strptime(data[field], "%Y-%m-%d").date()
+            except ValueError:
+                # Si échec, on laisse la valeur telle quelle
+                # Le contrôleur pourra gérer l'erreur de validation si nécessaire
+                pass

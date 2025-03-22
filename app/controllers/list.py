@@ -46,7 +46,7 @@ def create_list():
     
     return jsonify(list_obj.to_dict()), 201  # 201 Created pour la création réussie
 
-@bp.route('/<int:id>', methods=['PUT'])
+@bp.route('/<int:id>', methods=['PUT', 'POST'])
 @parse_request_data
 def update_list(id):
     """Mettre à jour une liste existante."""

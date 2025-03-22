@@ -1,0 +1,63 @@
+/* app/static/css/semainier.css */
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.column-header {
+    height: 3.5rem;
+}
+
+.column-content {
+    height: calc(100vh - 8rem);
+    overflow-y: auto;
+}
+
+.text-xxs {
+    font-size: 0.65rem;
+    line-height: 1rem;
+}
+
+.time-slot {
+    height: 3rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Masquer la scrollbar sur Chrome, Safari et Opera */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Masquer la scrollbar pour IE, Edge et Firefox */
+.hide-scrollbar {
+    -ms-overflow-style: none;  /* IE et Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Pour les indicateurs de journée actuelle */
+.current-day {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Hauteurs des cartes selon durée */
+.card-s {
+    min-height: 4rem;
+}
+
+.card-m {
+    min-height: 5rem;
+}
+
+.card-l {
+    min-height: 6rem;
+}
+
+/* Effet de survol des cartes */
+.activity-card {
+    border-left-width: 2px;
+    transition: border-color 0.2s, border-width 0.2s;
+}
+
+.activity-card:hover {
+    border-width: 2px;
+}

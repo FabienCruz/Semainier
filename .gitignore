@@ -4,7 +4,7 @@ env/
 # Fichiers Python compilés
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 # Base de données SQLite
 instance/
 # Fichiers de l'environnement

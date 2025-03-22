@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app import db
-from app.models import List, Sublist, Activity
+from app.models import List, Activity
 from app.models.activity import DurationSize
-from datetime import datetime, date, timedelta
+from app.utils.request_format_utils import parse_request_data
 
 # Création du Blueprint pour les routes d'activité
 bp = Blueprint('activity', __name__, url_prefix='/api/activities')
@@ -39,12 +39,15 @@ def get_activity(id):
     return jsonify(activity.to_dict()), 200
 
 @bp.route('/', methods=['POST'])
+@parse_request_data
 def create_activity():
     """Créer une nouvelle activité."""
-    data = request.get_json() or {}
+    data = request.parsed_data
+    print("Données reçues:", data)  # Log pour débugger
     
     # Validation des données requises
     if 'title' not in data or 'list_id' not in data:
+        print("Erreur: titre ou list_id manquant")  # Log pour débugger
         return jsonify({'error': 'Le titre et l\'ID de la liste sont requis'}), 400
     
     # Vérification que la liste existe
@@ -91,14 +94,15 @@ def create_activity():
     
     return jsonify(activity.to_dict()), 201
 
-@bp.route('/<int:id>', methods=['PUT'])
+@bp.route('/<int:id>', methods=['PUT', 'POST'])
+@parse_request_data
 def update_activity(id):
     """Mettre à jour une activité existante."""
     activity = db.session.get(Activity, id)
     if not activity:
         return jsonify({'error': 'Activité non trouvée'}), 404
     
-    data = request.get_json() or {}
+    data = request.parsed_data
     
     # Validation de la liste si changée
     if 'list_id' in data and data['list_id'] != activity.list_id:

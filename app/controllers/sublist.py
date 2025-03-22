@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app import db
 from app.models import List, Sublist
+from app.utils.request_format_utils import parse_request_data
 
 # Création du Blueprint pour les routes de sous-liste
 bp = Blueprint('sublist', __name__, url_prefix='/api/sublists')
@@ -27,9 +28,10 @@ def get_sublist(id):
     return jsonify(sublist.to_dict()), 200
 
 @bp.route('/', methods=['POST'])
+@parse_request_data
 def create_sublist():
     """Créer une nouvelle sous-liste."""
-    data = request.get_json() or {}
+    data = request.parsed_data
     
     # Validation des données requises
     if 'name' not in data or 'list_id' not in data:
@@ -57,14 +59,15 @@ def create_sublist():
     
     return jsonify(sublist.to_dict()), 201
 
-@bp.route('/<int:id>', methods=['PUT'])
+@bp.route('/<int:id>', methods=['PUT', 'POST'])
+@parse_request_data
 def update_sublist(id):
     """Mettre à jour une sous-liste existante."""
     sublist = db.session.get(Sublist, id)
     if not sublist:
         return jsonify({'error': 'Sous-liste non trouvée'}), 404
         
-    data = request.get_json() or {}
+    data = request.parsed_data
     
     # Validation des données requises
     if 'name' not in data:
