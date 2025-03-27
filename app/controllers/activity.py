@@ -43,11 +43,9 @@ def get_activity(id):
 def create_activity():
     """Créer une nouvelle activité."""
     data = request.parsed_data
-    print("Données reçues:", data)  # Log pour débugger
     
     # Validation des données requises
     if 'title' not in data or 'list_id' not in data:
-        print("Erreur: titre ou list_id manquant")  # Log pour débugger
         return jsonify({'error': 'Le titre et l\'ID de la liste sont requis'}), 400
     
     # Vérification que la liste existe

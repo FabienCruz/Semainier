@@ -1,15 +1,13 @@
 <!-- app/templates/components/lists.html -->
 {% if lists %}
     {% for list_item in lists %}
-        <div class="border-l-8 rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
-             style="border-color: {{ list_item.color_code }};"
+        <div class="rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
+             style="border-left: 8px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
              x-data="{ expanded: false }">
             <div class="flex justify-between items-center">
                 <div class="flex items-center">
                     <span class="text-base font-medium">{{ list_item.name }}</span>
-                    <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
-                        {{ list_item.activities|length }}
-                    </span>
+                    <!-- Compteur supprimé conformément à l'étape 5.5 -->
                 </div>
                 <div class="flex items-center space-x-1">
                     <!-- Menu d'actions avec dropdown -->
@@ -31,7 +29,7 @@
                                    @click="open = false"
                                    hx-get="{{ url_for('views.get_activity_form', list_id=list_item.id) }}"
                                    hx-target="#modal-container">
-                                    <i class="fas fa-calendar-week w-5 text-green-500"></i>
+                                    <i class="fas fa-calendar-week w-5 text-blue-500"></i>
                                     <span>Ajouter une activité</span>
                                 </a>
                                 <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

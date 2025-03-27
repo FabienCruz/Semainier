@@ -1,14 +1,11 @@
 <!-- app/templates/components/list_item.html -->
 <div class="rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
-     style="border-left: 8px solid red; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
+     style="border-left: 8px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
      x-data="{ expanded: false }">
     <div class="flex justify-between items-center">
         <div class="flex items-center">
             <span class="text-base font-medium">{{ list_item.name }}</span>
-            <span class="text-xs text-gray-500">(Couleur: {{ list_item.color_code or 'non définie' }})</span>
-            <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
-                {{ list_item.activities|length }}
-            </span>
+            <!-- Suppression du compteur selon la demande de l'étape 5.5 -->
         </div>
         <div class="flex items-center space-x-1">
             <!-- Menu d'actions avec dropdown -->
@@ -68,13 +65,109 @@
     
     <!-- Sous-listes et activités (masquées par défaut) -->
     <div class="mt-2 ml-3 space-y-2" x-show="expanded" x-transition>
-        <div id="list-content-{{ list_item.id }}" 
-             hx-get="{{ url_for('views.get_list', list_id=list_item.id) }}" 
-             hx-trigger="htmx:load from:this once" 
-             hx-swap="innerHTML">
-            <!-- Indicateur de chargement -->
-            <div class="flex justify-center items-center p-2">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <div id="list-content-{{ list_item.id }}">
+            {% if list_item.sublists %}
+                <div class="space-y-2 mb-3">
+                    {% for sublist in list_item.sublists %}
+                        <!-- Sous-liste avec bordure moyenne -->
+                        <div class="rounded-md p-2 bg-white hover:bg-gray-50 mb-2"
+                             style="border-left: 4px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
+                             x-data="{ expandedSublist: false }">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium">{{ sublist.name }}</span>
+                                <div class="flex items-center space-x-1">
+                                    <!-- Menu sous-liste -->
+                                    <div x-data="{ openSubMenu: false }" class="relative">
+                                        <button 
+                                            @click="openSubMenu = !openSubMenu" 
+                                            class="text-gray-500 hover:text-gray-700 text-xs p-1 rounded-full hover:bg-gray-200"
+                                            title="Actions">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <div 
+                                            x-show="openSubMenu" 
+                                            @click.away="openSubMenu = false" 
+                                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                                            x-transition>
+                                            <div class="py-1">
+                                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                   @click="openSubMenu = false"
+                                                   hx-get="{{ url_for('views.get_activity_form', list_id=list_item.id, sublist_id=sublist.id) }}"
+                                                   hx-target="#modal-container">
+                                                    <i class="fas fa-calendar-week w-5 text-blue-500"></i>
+                                                    <span>Ajouter une activité</span>
+                                                </a>
+                                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                   @click="openSubMenu = false"
+                                                   hx-get="{{ url_for('views.edit_sublist_form', sublist_id=sublist.id) }}"
+                                                   hx-target="#modal-container">
+                                                    <i class="fas fa-edit w-5 text-blue-500"></i>
+                                                    <span>Modifier</span>
+                                                </a>
+                                                <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                                   @click="openSubMenu = false"
+                                                   hx-get="{{ url_for('views.get_delete_confirmation', type='sublist', id=sublist.id) }}"
+                                                   hx-target="#modal-container">
+                                                    <i class="fas fa-trash w-5 text-red-500"></i>
+                                                    <span>Supprimer</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Bouton développer/réduire sous-liste -->
+                                    <button class="text-gray-500 hover:text-gray-700 text-xs" 
+                                            @click="expandedSublist = !expandedSublist" 
+                                            x-bind:title="expandedSublist ? 'Réduire' : 'Développer'">
+                                        <i class="fas" :class="expandedSublist ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Activités de la sous-liste -->
+                            <div class="mt-2 space-y-2" x-show="expandedSublist" x-transition>
+                                {% for activity in sublist.activities %}
+                                    <div 
+                                        x-data="{
+                                            activity: {
+                                                id: {{ activity.id }},
+                                                title: '{{ activity.title }}',
+                                                due_date: '{{ activity.due_date }}',
+                                                duration: '{{ activity.duration }}',
+                                                priority: {{ 'true' if activity.priority else 'false' }},
+                                                completed: {{ 'true' if activity.completed else 'false' }},
+                                                color: '{{ list_item.color_code }}',
+                                                is_template: {{ 'true' if activity.is_template else 'false' }}
+                                            }
+                                        }"
+                                    >
+                                        {% include 'components/activity_card.html' %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Activités directement liées à la liste (sans sous-liste) -->
+            <div class="space-y-2">
+                {% for activity in list_item.activities if not activity.sublist_id %}
+                    <div 
+                        x-data="{
+                            activity: {
+                                id: {{ activity.id }},
+                                title: '{{ activity.title }}',
+                                due_date: '{{ activity.due_date }}',
+                                duration: '{{ activity.duration }}',
+                                priority: {{ 'true' if activity.priority else 'false' }},
+                                completed: {{ 'true' if activity.completed else 'false' }},
+                                color: '{{ list_item.color_code }}',
+                                is_template: {{ 'true' if activity.is_template else 'false' }}
+                            }
+                        }"
+                    >
+                        {% include 'components/activity_card.html' %}
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>

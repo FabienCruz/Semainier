@@ -4,15 +4,13 @@
 {% if sublists %}
     <div class="space-y-2 mb-4">
         {% for sublist in sublists %}
-            <div class="border-l-4 rounded-md p-2 bg-gray-50 hover:bg-gray-100" 
-                 style="border-color: {{ list_item.color_code }};"
+            <div class="rounded-md p-2 bg-gray-50 hover:bg-gray-100" 
+                 style="border-left: 4px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
                  x-data="{ sublistExpanded: false }">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
                         <span class="text-sm font-medium">{{ sublist.name }}</span>
-                        <span class="ml-2 text-xs text-gray-500 bg-gray-200 rounded-full px-1.5 py-0.5">
-                            {{ sublist.activities|default([])|length }}
-                        </span>
+                        <!-- Compteur de sous-liste supprimé conformément à l'étape 5.5 -->
                     </div>
                     <div class="flex items-center space-x-1">
                         <!-- Menu d'actions avec dropdown -->
@@ -64,13 +62,23 @@
                 </div>
                 
                 <!-- Activités de la sous-liste (masquées par défaut) -->
-                <div class="mt-2 ml-2 space-y-1" x-show="sublistExpanded" x-transition>
+                <div class="mt-2 ml-2 space-y-2" x-show="sublistExpanded" x-transition>
                     {% if sublist.activities %}
                         {% for activity in sublist.activities %}
-                            <!-- Template d'activité à développer plus tard -->
-                            <div class="p-1 border-l-2 rounded-sm bg-white hover:bg-gray-50" 
-                                 style="border-color: {{ list_item.color_code }};">
-                                <span class="text-xs">{{ activity.title }}</span>
+                            <!-- Utilisation du composant activity_card -->
+                            <div x-data="{
+                                activity: {
+                                    id: {{ activity.id }},
+                                    title: '{{ activity.title }}',
+                                    due_date: '{{ activity.due_date | default("", true) }}',
+                                    duration: '{{ activity.duration }}',
+                                    is_priority: {{ 'true' if activity.is_priority else 'false' }},
+                                    completed: {{ 'true' if activity.completed else 'false' }},
+                                    color: '{{ list_item.color_code }}',
+                                    is_template: {{ 'true' if activity.is_template else 'false' }}
+                                }
+                            }">
+                                {% include 'components/activity_card.html' %}
                             </div>
                         {% endfor %}
                     {% else %}
@@ -84,12 +92,22 @@
 
 <!-- Activités de la liste principale (pas dans une sous-liste) -->
 {% if activities %}
-    <div class="space-y-1">
+    <div class="space-y-2">
         {% for activity in activities %}
-            <!-- Template d'activité à développer plus tard -->
-            <div class="p-2 border-l-2 rounded-sm bg-white hover:bg-gray-50" 
-                 style="border-color: {{ list_item.color_code }};">
-                <span class="text-sm">{{ activity.title }}</span>
+            <!-- Utilisation du composant activity_card -->
+            <div x-data="{
+                activity: {
+                    id: {{ activity.id }},
+                    title: '{{ activity.title }}',
+                    due_date: '{{ activity.due_date | default("", true) }}',
+                    duration: '{{ activity.duration }}',
+                    is_priority: {{ 'true' if activity.is_priority else 'false' }},
+                    completed: {{ 'true' if activity.completed else 'false' }},
+                    color: '{{ list_item.color_code }}',
+                    is_template: {{ 'true' if activity.is_template else 'false' }}
+                }
+            }">
+                {% include 'components/activity_card.html' %}
             </div>
         {% endfor %}
     </div>

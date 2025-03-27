@@ -94,3 +94,33 @@ function getMonday(date) {
     const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
     return new Date(date.setDate(diff));
 }
+
+/**
+ * Formate une date au format "jour de semaine abrégé + jour du mois + mois abrégé" (ex: "lun 01 jan")
+ * @param {string|Date} dateStr - La date à formater (objet Date ou chaîne ISO)
+ * @returns {string} La date formatée
+ */
+function formatDueDateShort(dateStr) {
+    if (!dateStr) return '';
+    
+    try {
+        const date = dateStr instanceof Date ? dateStr : new Date(dateStr);
+        if (isNaN(date)) return dateStr;
+        
+        // Jours de la semaine en français
+        const weekdays = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+        
+        // Mois en français
+        const months = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc'];
+        
+        // Formater comme "jou JJ moi" (ex: "lun 01 jan")
+        const dayOfWeek = weekdays[date.getDay()];
+        const dayOfMonth = String(date.getDate()).padStart(2, '0');
+        const month = months[date.getMonth()];
+        
+        return `${dayOfWeek} ${dayOfMonth} ${month}`;
+    } catch (e) {
+        console.error('Error formatting date:', e);
+        return dateStr;
+    }
+}
