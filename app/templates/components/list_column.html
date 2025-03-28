@@ -1,5 +1,5 @@
 <!-- app/templates/components/list_column.html -->
-<div class="bg-white rounded-lg shadow-md md:w-1/3" x-data="{ active: true }">
+<div class="bg-white rounded-lg shadow-md md:w-1/3 lists-column" x-data="{ active: true }">
     <!-- En-tête de la colonne -->
     <div class="column-header p-3 border-b flex justify-between items-center">
         <h2 class="text-lg font-semibold text-gray-800">Listes</h2>
@@ -52,11 +52,14 @@
     
     <!-- Contenu de la colonne -->
     <div class="column-content p-3 hide-scrollbar" x-show="active">
-        <!-- Le contenu dynamique des listes sera injecté ici -->
+        <!-- Conteneur pour les listes avec alignement uniforme -->
         <div id="lists-container" 
+             class="list-container"
              hx-get="{{ url_for('views.get_lists') }}" 
              hx-trigger="load, refresh from:body" 
              hx-swap="innerHTML">
+            <!-- Le contenu sera chargé dynamiquement via lists.html -->
+            
             <!-- Indicateur de chargement -->
             <div class="flex justify-center items-center p-4">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

@@ -2,15 +2,14 @@
 
 <!-- Sous-listes -->
 {% if sublists %}
-    <div class="space-y-2 mb-4">
+    <div class="space-y-3 mb-4">
         {% for sublist in sublists %}
-            <div class="rounded-md p-2 bg-gray-50 hover:bg-gray-100" 
-                 style="border-left: 4px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
+            <div class="sublist-container rounded-md p-2 bg-gray-50 hover:bg-gray-100" 
+                 style="border: 1px solid #e5e7eb;"
                  x-data="{ sublistExpanded: false }">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
                         <span class="text-sm font-medium">{{ sublist.name }}</span>
-                        <!-- Compteur de sous-liste supprimé conformément à l'étape 5.5 -->
                     </div>
                     <div class="flex items-center space-x-1">
                         <!-- Menu d'actions avec dropdown -->
@@ -52,34 +51,35 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Bouton développer/réduire -->
+                        <!-- Bouton développer/réduire avec icône chevron-right qui tourne -->
                         <button class="text-gray-500 hover:text-gray-700 text-xs" 
                                 @click="sublistExpanded = !sublistExpanded" 
                                 x-bind:title="sublistExpanded ? 'Réduire' : 'Développer'">
-                            <i class="fas" :class="sublistExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            <i class="fas fa-chevron-right toggle-icon" :class="{'expanded': sublistExpanded}"></i>
                         </button>
                     </div>
                 </div>
                 
-                <!-- Activités de la sous-liste (masquées par défaut) -->
-                <div class="mt-2 space-y-2 sublist-content" 
+                <!-- Activités de la sous-liste (masquées par défaut) avec transition améliorée -->
+                <div class="mt-2 sublist-activities" 
                      :class="{ 'expand-transition': true, 'expanded': sublistExpanded }"
                      x-ref="sublistContent">
                     {% if sublist.activities %}
                         {% for activity in sublist.activities %}
-                            <!-- Utilisation du composant activity_card -->
-                            <div x-data="{
-                                activity: {
-                                    id: {{ activity.id }},
-                                    title: '{{ activity.title }}',
-                                    due_date: '{{ activity.due_date | default("", true) }}',
-                                    duration: '{{ activity.duration }}',
-                                    is_priority: {{ 'true' if activity.is_priority else 'false' }},
-                                    completed: {{ 'true' if activity.completed else 'false' }},
-                                    color: '{{ list_item.color_code }}',
-                                    is_template: {{ 'true' if activity.is_template else 'false' }}
-                                }
-                            }">
+                            <!-- Conteneur d'activité avec alignement uniforme -->
+                            <div class="activity-card-container mb-2"
+                                 x-data="{
+                                    activity: {
+                                        id: {{ activity.id }},
+                                        title: '{{ activity.title }}',
+                                        due_date: '{{ activity.due_date | default("", true) }}',
+                                        duration: '{{ activity.duration }}',
+                                        is_priority: {{ 'true' if activity.is_priority else 'false' }},
+                                        completed: {{ 'true' if activity.completed else 'false' }},
+                                        color: '{{ list_item.color_code }}',
+                                        is_template: {{ 'true' if activity.is_template else 'false' }}
+                                    }
+                                }">
                                 {% include 'components/activity_card.html' %}
                             </div>
                         {% endfor %}
@@ -94,21 +94,22 @@
 
 <!-- Activités de la liste principale (pas dans une sous-liste) -->
 {% if activities %}
-    <div class="space-y-2 list-content">
+    <div class="list-activities">
         {% for activity in activities %}
-            <!-- Utilisation du composant activity_card -->
-            <div x-data="{
-                activity: {
-                    id: {{ activity.id }},
-                    title: '{{ activity.title }}',
-                    due_date: '{{ activity.due_date | default("", true) }}',
-                    duration: '{{ activity.duration }}',
-                    is_priority: {{ 'true' if activity.is_priority else 'false' }},
-                    completed: {{ 'true' if activity.completed else 'false' }},
-                    color: '{{ list_item.color_code }}',
-                    is_template: {{ 'true' if activity.is_template else 'false' }}
-                }
-            }">
+            <!-- Conteneur d'activité avec alignement uniforme -->
+            <div class="activity-card-container mb-2"
+                 x-data="{
+                    activity: {
+                        id: {{ activity.id }},
+                        title: '{{ activity.title }}',
+                        due_date: '{{ activity.due_date | default("", true) }}',
+                        duration: '{{ activity.duration }}',
+                        is_priority: {{ 'true' if activity.is_priority else 'false' }},
+                        completed: {{ 'true' if activity.completed else 'false' }},
+                        color: '{{ list_item.color_code }}',
+                        is_template: {{ 'true' if activity.is_template else 'false' }}
+                    }
+                }">
                 {% include 'components/activity_card.html' %}
             </div>
         {% endfor %}

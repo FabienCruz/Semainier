@@ -39,27 +39,105 @@ body {
     background-color: rgba(59, 130, 246, 0.1);
 }
 
-/* Force l'alignement des activités sur la même marge que les listes */
-.list-content .activity-card, 
-.sublist-content .activity-card {
-    margin-left: 0 !important;
+/* --- Système d'alignement uniforme pour les cartes --- */
+
+/* Structure de base pour les listes et sous-listes */
+.list-container {
+    position: relative;
 }
 
-/* Supprime spécifiquement les marges gauches des conteneurs d'activités */
-.list-content [class*="ml-"], 
-.sublist-content [class*="ml-"] {
-    margin-left: 0 !important;
+/* Indentation visuelle pour les sous-listes */
+.sublist-container {
+    position: relative;
+    padding-left: 1rem;
 }
 
-/* Effet de survol des cartes */
-.activity-card {
+/* Définition d'un système de coordonnées pour les cartes d'activité */
+.list-activities,
+.sublist-activities {
+    position: relative;
+    width: 100%;
+}
+
+/* IMPORTANT: Forcer toutes les cartes d'activité à s'aligner à la même coordonnée horizontale que les listes principales */
+.activity-card-container {
+    position: relative;
+    box-sizing: border-box;
+    margin-bottom: 0.5rem;
+}
+
+/* Les cartes dans une liste principale sont à leur position normale */
+.list-activities .activity-card-container {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* Les cartes dans une sous-liste doivent ignorer l'indentation de la sous-liste */
+.sublist-activities .activity-card-container {
+    /* Position à la même hauteur que celles de la liste principale */
+    position: relative;
+    left: -1rem; /* Annule l'indentation de la sous-liste */
+    padding-left: 1rem; /* Maintient l'espace interne */
+    width: calc(100% + 1rem); /* Assure que la carte conserve sa largeur complète */
+}
+
+/* --- Système de bordures colorées simplifié --- */
+
+/* Bordures colorées uniquement pour les listes principales dans la colonne Listes */
+.lists-column .list-container {
+    border-left-width: 0;
+    border-left-style: solid;
+}
+
+/* Pas de bordures colorées pour les sous-listes dans la colonne Listes */
+.lists-column .sublist-container {
+    border-left-width: 0;
+}
+
+/* Pas de bordures pour les activités dans la colonne Listes */
+.lists-column .activity-card {
     border-left-width: 2px;
-    transition: border-color 0.2s, border-width 0.2s;
-    min-height: 4rem; /* Hauteur de base pour toutes les cartes */
+}
+
+/* Garder les bordures des activités uniquement dans les colonnes Objectifs et Emploi du temps */
+.activity-card {
+    transition: border-color 0.2s, border-width 0.2s, box-shadow 0.2s;
+    min-height: 4rem;
+    cursor: pointer;
+}
+
+.objectives-column .activity-card,
+.schedule-column .activity-card {
+    border-left-width: 2px;
+    border-left-style: solid;
 }
 
 .activity-card:hover {
     border-width: 2px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Animations pour l'ouverture/fermeture des listes et sous-listes --- */
+
+.expand-transition {
+    transition: max-height 0.35s ease-out, opacity 0.25s ease-out;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.expand-transition.expanded {
+    max-height: 1000px;
+    opacity: 1;
+}
+
+/* Animation pour les icônes de toggle */
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.toggle-icon.expanded {
+    transform: rotate(90deg);
 }
 
 /* Styles pour les indicateurs de durée */
@@ -69,15 +147,20 @@ body {
     margin-bottom: 2px;
 }
 
-/* Animations pour l'ouverture/fermeture */
-.expand-transition {
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
+/* Amélioration du style de hover pour les cartes */
+.activity-card.dblclick-target {
+    position: relative;
 }
 
-.expand-transition.expanded {
-    max-height: 1000px;
-    opacity: 1;
+.activity-card.dblclick-target::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: transparent;
+    transition: background-color 0.2s;
+    pointer-events: none;
+}
+
+.activity-card.dblclick-target:active::after {
+    background-color: rgba(59, 130, 246, 0.1);
 }

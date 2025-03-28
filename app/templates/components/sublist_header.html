@@ -1,0 +1,84 @@
+<!-- app/templates/components/sublist_header.html -->
+
+<!--
+  Composant modulaire d'en-tête de regroupement
+  
+  Paramètres:
+  - id: identifiant unique pour le groupe (obligatoire)
+  - title: titre du regroupement (obligatoire)
+  - icon: classe Font Awesome pour l'icône (optionnel, par défaut: fa-layer-group)
+  - initial_state: état initial du groupe, expanded=true ou false (optionnel, par défaut: false)
+  - show_toggle: afficher le bouton développer/réduire (optionnel, par défaut: true)
+  - show_actions: afficher le menu d'actions (optionnel, par défaut: true)
+  - bg_color: couleur de fond (optionnel, par défaut: bg-gray-50)
+  - hover_color: couleur de fond au survol (optionnel, par défaut: hover:bg-gray-100)
+  - container_class: classes supplémentaires pour le conteneur (optionnel)
+  - is_default: indique si c'est la sous-liste virtuelle par défaut (optionnel, par défaut: false)
+-->
+
+<div 
+    id="{{ id }}-header" 
+    class="group-header {{ container_class }} {% if not is_default %}rounded-md p-2 {{ bg_color|default('bg-gray-50') }} {{ hover_color|default('hover:bg-gray-100') }}{% endif %}" 
+    style="{% if is_default %}display: none;{% endif %}"
+    x-data="{ 
+        groupExpanded: {{ initial_state|default('false') }},
+        groupId: '{{ id }}',
+        isDefault: {{ is_default|default('false') }}
+    }"
+    @toggle-group.window="if($event.detail.groupId === groupId) groupExpanded = $event.detail.state">
+
+    <div class="flex justify-between items-center" {% if is_default %}style="display: none;"{% endif %}>
+        <!-- Titre et icône -->
+        <div class="flex items-center">
+            {% if icon %}
+                <i class="{{ icon }} mr-2 text-sm text-gray-500"></i>
+            {% endif %}
+            <span class="text-sm font-medium">{{ title }}</span>
+        </div>
+
+        <div class="flex items-center space-x-1">
+            <!-- Menu d'actions -->
+            {% if show_actions|default(true) and not is_default %}
+                <div x-data="{ open: false }" class="relative">
+                    <button 
+                        @click="open = !open" 
+                        class="text-gray-500 hover:text-gray-700 text-xs p-1 rounded-full hover:bg-gray-200"
+                        title="Actions">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    
+                    <!-- Menu d'actions contextuel -->
+                    <div 
+                        x-show="open" 
+                        @click.away="open = false" 
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                        x-transition>
+                        <div class="py-1">
+                            {% block action_menu_items %}
+                                <!-- Contenu par défaut du menu -->
+                                <span class="px-4 py-2 text-sm text-gray-500 block">Aucune action disponible</span>
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Bouton développer/réduire avec icône chevron-right qui tourne -->
+            {% if show_toggle|default(true) and not is_default %}
+                <button class="text-gray-500 hover:text-gray-700 text-xs" 
+                        @click="groupExpanded = !groupExpanded; $dispatch('toggle-group-state', { groupId: groupId, state: groupExpanded })" 
+                        x-bind:title="groupExpanded ? 'Réduire' : 'Développer'">
+                    <i class="fas fa-chevron-right toggle-icon" :class="{'expanded': groupExpanded}"></i>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Émet un événement personnalisé quand l'état change pour que les parents puissent réagir -->
+<div x-data x-init="$nextTick(() => {
+        if ($parent.isDefault === true) {
+            $dispatch('toggle-group-state', { groupId: $parent.groupId, state: true });
+        }
+    })">
+</div>

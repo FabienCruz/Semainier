@@ -1,11 +1,10 @@
 <!-- app/templates/components/list_item.html -->
-<div class="rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3 list-item" 
-     style="border-left: 8px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
+<div class="list-container rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
+     style="border-left: 4px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
      x-data="{ expanded: false }">
     <div class="flex justify-between items-center">
         <div class="flex items-center">
             <span class="text-base font-medium">{{ list_item.name }}</span>
-            <!-- Suppression du compteur selon la demande de l'étape 5.5 -->
         </div>
         <div class="flex items-center space-x-1">
             <!-- Menu d'actions avec dropdown -->
@@ -54,25 +53,25 @@
                     </div>
                 </div>
             </div>
-            <!-- Bouton développer/réduire -->
+            <!-- Bouton développer/réduire avec icône chevron-right qui tourne -->
             <button class="text-gray-500 hover:text-gray-700 text-sm" 
                     @click="expanded = !expanded; $nextTick(() => { if(expanded) $dispatch('htmx:load', {target: '#list-content-{{ list_item.id }}'}); })" 
                     x-bind:title="expanded ? 'Réduire' : 'Développer'">
-                <i class="fas" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                <i class="fas fa-chevron-right toggle-icon" :class="{'expanded': expanded}"></i>
             </button>
         </div>
     </div>
     
-    <!-- Sous-listes et activités (masquées par défaut) -->
-    <div class="expand-collapse-transition" x-show="expanded" x-transition 
-         :class="{'expanded': expanded}" x-cloak>
-        <div id="list-content-{{ list_item.id }}" class="mt-2 space-y-2">
+    <!-- Sous-listes et activités avec animation d'expansion améliorée -->
+    <div class="mt-2" 
+         :class="{ 'expand-transition': true, 'expanded': expanded }" x-cloak>
+        <div id="list-content-{{ list_item.id }}" class="space-y-3">
             {% if list_item.sublists %}
-                <div class="space-y-2 mb-3">
+                <div class="space-y-3">
                     {% for sublist in list_item.sublists %}
-                        <!-- Sous-liste avec bordure moyenne -->
-                        <div class="rounded-md p-2 bg-white hover:bg-gray-50 mb-2 sublist-item"
-                             style="border-left: 4px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
+                        <!-- Sous-liste avec bordure uniformisée -->
+                        <div class="sublist-container rounded-md p-2 bg-white hover:bg-gray-50"
+                             style="border: 1px solid #e5e7eb;"
                              x-data="{ expandedSublist: false }">
                             <div class="flex justify-between items-center">
                                 <span class="text-sm font-medium">{{ sublist.name }}</span>
@@ -115,28 +114,27 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Bouton développer/réduire sous-liste -->
+                                    <!-- Bouton développer/réduire avec le même effet que les listes -->
                                     <button class="text-gray-500 hover:text-gray-700 text-xs" 
                                             @click="expandedSublist = !expandedSublist" 
                                             x-bind:title="expandedSublist ? 'Réduire' : 'Développer'">
-                                        <i class="fas" :class="expandedSublist ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                        <i class="fas fa-chevron-right toggle-icon" :class="{'expanded': expandedSublist}"></i>
                                     </button>
                                 </div>
                             </div>
-                            <!-- Activités de la sous-liste -->
-                            <div class="expand-collapse-transition activities-container" 
-                                 x-show="expandedSublist" x-transition
-                                 :class="{'expanded': expandedSublist}" x-cloak>
+                            <!-- Activités de la sous-liste avec animation uniformisée -->
+                            <div class="mt-2 sublist-activities" 
+                                 :class="{ 'expand-transition': true, 'expanded': expandedSublist }" x-cloak>
                                 {% for activity in sublist.activities %}
-                                    <div class="activity-wrapper"
+                                    <div class="activity-card-container mb-2"
                                         x-data="{
                                             activity: {
                                                 id: {{ activity.id }},
                                                 title: '{{ activity.title }}',
                                                 due_date: '{{ activity.due_date }}',
                                                 duration: '{{ activity.duration }}',
-                                                priority: {{ 'true' if activity.priority else 'false' }},
-                                                completed: {{ 'true' if activity.completed else 'false' }},
+                                                priority: {{ 'true' if activity.is_priority else 'false' }},
+                                                completed: {{ 'true' if activity.is_completed else 'false' }},
                                                 color: '{{ list_item.color_code }}',
                                                 is_template: {{ 'true' if activity.is_template else 'false' }}
                                             }
@@ -152,17 +150,17 @@
             {% endif %}
             
             <!-- Activités directement liées à la liste (sans sous-liste) -->
-            <div class="activities-container">
+            <div class="list-activities">
                 {% for activity in list_item.activities if not activity.sublist_id %}
-                    <div class="activity-wrapper"
+                    <div class="activity-card-container mb-2"
                         x-data="{
                             activity: {
                                 id: {{ activity.id }},
                                 title: '{{ activity.title }}',
                                 due_date: '{{ activity.due_date }}',
                                 duration: '{{ activity.duration }}',
-                                priority: {{ 'true' if activity.priority else 'false' }},
-                                completed: {{ 'true' if activity.completed else 'false' }},
+                                priority: {{ 'true' if activity.is_priority else 'false' }},
+                                completed: {{ 'true' if activity.is_completed else 'false' }},
                                 color: '{{ list_item.color_code }}',
                                 is_template: {{ 'true' if activity.is_template else 'false' }}
                             }

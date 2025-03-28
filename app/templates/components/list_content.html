@@ -1,0 +1,130 @@
+<!-- app/templates/components/list_content.html -->
+
+<!--
+  Composant pour afficher le contenu d'une liste, incluant:
+  - Les sous-listes avec leurs activités
+  - Les activités directement dans la liste (sans sous-liste)
+  
+  Ce composant implémente le concept de "sous-liste virtuelle par défaut"
+  pour uniformiser l'alignement des cartes d'activité.
+  
+  Paramètres:
+  - list_item: objet liste avec ses propriétés
+  - sublists: liste des sous-listes appartenant à cette liste
+  - activities: liste des activités directement dans la liste (sans sous-liste)
+-->
+
+<div class="list-content">
+    <!-- Section des sous-listes réelles -->
+    {% if sublists %}
+    <div class="sublists-section space-y-3 mb-4">
+        {% for sublist in sublists %}
+        <div class="sublist-container rounded-md"
+             x-data="{ 
+                 sublistContentVisible: false 
+             }"
+             @toggle-group-state.window="if($event.detail.groupId === 'sublist-{{ sublist.id }}') sublistContentVisible = $event.detail.state">
+            
+            <!-- En-tête de sous-liste utilisant le composant modulaire -->
+            {% include 'components/sublist_header.html' with context %}
+                {% set id = 'sublist-' ~ sublist.id %}
+                {% set title = sublist.name %}
+                {% set icon = 'fas fa-layer-group' %}
+                {% set is_default = false %}
+                
+                {% block action_menu_items %}
+                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                   @click="open = false"
+                   hx-get="{{ url_for('views.get_activity_form', list_id=list_item.id, sublist_id=sublist.id) }}"
+                   hx-target="#modal-container">
+                    <i class="fas fa-calendar-week w-5 text-blue-500"></i>
+                    <span>Ajouter une activité</span>
+                </a>
+                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                   @click="open = false"
+                   hx-get="{{ url_for('views.edit_sublist_form', sublist_id=sublist.id) }}"
+                   hx-target="#modal-container">
+                    <i class="fas fa-edit w-5 text-blue-500"></i>
+                    <span>Modifier</span>
+                </a>
+                <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                   @click="open = false"
+                   hx-get="{{ url_for('views.get_delete_confirmation', type='sublist', id=sublist.id) }}"
+                   hx-target="#modal-container">
+                    <i class="fas fa-trash w-5 text-red-500"></i>
+                    <span>Supprimer</span>
+                </a>
+                {% endblock %}
+            
+            <!-- Activités de la sous-liste avec transition d'animation -->
+            <div class="mt-2 sublist-activities"
+                 :class="{ 'expand-transition': true, 'expanded': sublistContentVisible }">
+                {% if sublist.activities %}
+                    {% for activity in sublist.activities %}
+                        <!-- Conteneur d'activité avec alignement uniforme -->
+                        <div class="activity-card-container mb-2"
+                             x-data="{
+                                activity: {
+                                    id: {{ activity.id }},
+                                    title: '{{ activity.title }}',
+                                    due_date: '{{ activity.due_date | default("", true) }}',
+                                    duration: '{{ activity.duration }}',
+                                    is_priority: {{ 'true' if activity.is_priority else 'false' }},
+                                    completed: {{ 'true' if activity.completed else 'false' }},
+                                    color: '{{ list_item.color_code }}',
+                                    is_template: {{ 'true' if activity.is_template else 'false' }}
+                                }
+                            }">
+                            {% include 'components/activity_card.html' %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-xs text-gray-500 italic">Aucune activité</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Sous-liste virtuelle "par défaut" pour les activités sans sous-liste -->
+    <div class="default-activities"
+         x-data="{ 
+             defaultContentVisible: true 
+         }"
+         @toggle-group-state.window="if($event.detail.groupId === 'default-activities-{{ list_item.id }}') defaultContentVisible = $event.detail.state">
+        
+        <!-- En-tête invisible mais fonctionnel -->
+        {% include 'components/sublist_header.html' with context %}
+            {% set id = 'default-activities-' ~ list_item.id %}
+            {% set title = 'Activités' %}
+            {% set is_default = true %}
+            {% set initial_state = true %}
+        
+        <!-- Activités sans sous-liste (toujours visibles) -->
+        <div class="list-activities" x-show="defaultContentVisible">
+            {% if activities %}
+                {% for activity in activities %}
+                    <!-- Conteneur d'activité avec alignement uniforme -->
+                    <div class="activity-card-container mb-2"
+                         x-data="{
+                            activity: {
+                                id: {{ activity.id }},
+                                title: '{{ activity.title }}',
+                                due_date: '{{ activity.due_date | default("", true) }}',
+                                duration: '{{ activity.duration }}',
+                                is_priority: {{ 'true' if activity.is_priority else 'false' }},
+                                completed: {{ 'true' if activity.completed else 'false' }},
+                                color: '{{ list_item.color_code }}',
+                                is_template: {{ 'true' if activity.is_template else 'false' }}
+                            }
+                        }">
+                        {% include 'components/activity_card.html' %}
+                    </div>
+                {% endfor %}
+            {% elif not sublists %}
+                <div class="text-xs text-gray-500 italic">Aucune activité ni sous-liste</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
