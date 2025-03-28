@@ -1,5 +1,5 @@
 <!-- app/templates/components/list_item.html -->
-<div class="rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3" 
+<div class="rounded-md p-3 bg-gray-50 hover:bg-gray-100 mb-3 list-item" 
      style="border-left: 8px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
      x-data="{ expanded: false }">
     <div class="flex justify-between items-center">
@@ -64,13 +64,14 @@
     </div>
     
     <!-- Sous-listes et activités (masquées par défaut) -->
-    <div class="mt-2 ml-3 space-y-2" x-show="expanded" x-transition>
-        <div id="list-content-{{ list_item.id }}">
+    <div class="expand-collapse-transition" x-show="expanded" x-transition 
+         :class="{'expanded': expanded}" x-cloak>
+        <div id="list-content-{{ list_item.id }}" class="mt-2 space-y-2">
             {% if list_item.sublists %}
                 <div class="space-y-2 mb-3">
                     {% for sublist in list_item.sublists %}
                         <!-- Sous-liste avec bordure moyenne -->
-                        <div class="rounded-md p-2 bg-white hover:bg-gray-50 mb-2"
+                        <div class="rounded-md p-2 bg-white hover:bg-gray-50 mb-2 sublist-item"
                              style="border-left: 4px solid {{ list_item.color_code }}; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;"
                              x-data="{ expandedSublist: false }">
                             <div class="flex justify-between items-center">
@@ -123,9 +124,11 @@
                                 </div>
                             </div>
                             <!-- Activités de la sous-liste -->
-                            <div class="mt-2 space-y-2" x-show="expandedSublist" x-transition>
+                            <div class="expand-collapse-transition activities-container" 
+                                 x-show="expandedSublist" x-transition
+                                 :class="{'expanded': expandedSublist}" x-cloak>
                                 {% for activity in sublist.activities %}
-                                    <div 
+                                    <div class="activity-wrapper"
                                         x-data="{
                                             activity: {
                                                 id: {{ activity.id }},
@@ -149,9 +152,9 @@
             {% endif %}
             
             <!-- Activités directement liées à la liste (sans sous-liste) -->
-            <div class="space-y-2">
+            <div class="activities-container">
                 {% for activity in list_item.activities if not activity.sublist_id %}
-                    <div 
+                    <div class="activity-wrapper"
                         x-data="{
                             activity: {
                                 id: {{ activity.id }},

@@ -39,6 +39,18 @@ body {
     background-color: rgba(59, 130, 246, 0.1);
 }
 
+/* Force l'alignement des activités sur la même marge que les listes */
+.list-content .activity-card, 
+.sublist-content .activity-card {
+    margin-left: 0 !important;
+}
+
+/* Supprime spécifiquement les marges gauches des conteneurs d'activités */
+.list-content [class*="ml-"], 
+.sublist-content [class*="ml-"] {
+    margin-left: 0 !important;
+}
+
 /* Effet de survol des cartes */
 .activity-card {
     border-left-width: 2px;
@@ -55,4 +67,17 @@ body {
     display: inline-block;
     border-bottom-width: 1px;
     margin-bottom: 2px;
+}
+
+/* Animations pour l'ouverture/fermeture */
+.expand-transition {
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.expand-transition.expanded {
+    max-height: 1000px;
+    opacity: 1;
 }

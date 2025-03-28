@@ -62,7 +62,9 @@
                 </div>
                 
                 <!-- Activités de la sous-liste (masquées par défaut) -->
-                <div class="mt-2 ml-2 space-y-2" x-show="sublistExpanded" x-transition>
+                <div class="mt-2 space-y-2 sublist-content" 
+                     :class="{ 'expand-transition': true, 'expanded': sublistExpanded }"
+                     x-ref="sublistContent">
                     {% if sublist.activities %}
                         {% for activity in sublist.activities %}
                             <!-- Utilisation du composant activity_card -->
@@ -92,7 +94,7 @@
 
 <!-- Activités de la liste principale (pas dans une sous-liste) -->
 {% if activities %}
-    <div class="space-y-2">
+    <div class="space-y-2 list-content">
         {% for activity in activities %}
             <!-- Utilisation du composant activity_card -->
             <div x-data="{
