@@ -1,47 +1,104 @@
-<!-- app/templates/components/activity_card.html -->
-<div class="activity-card border-l-2 border rounded p-2 bg-white hover:bg-gray-50 shadow-sm relative"
-     :style="`border-left-color: ${activity.color}`">
+<!-- 
+app/templates/components/activity_card.html
 
-    <!-- Pastilles priorité et modèle -->
-    <div class="absolute top-1 right-1 flex space-x-1">
-        <template x-if="activity.is_priority === true">
-            <div class="h-3 w-3 rounded-full bg-red-500" title="Prioritaire"></div>
-        </template>
-        <template x-if="activity.is_template === true">
-            <div class="h-3 w-3 rounded-full bg-purple-600" title="Modèle"></div>
-        </template>
-    </div>
+Rôle fonctionnel: Affiche une carte d'activité individuelle
 
-    <div class="flex justify-between items-start">
-        <!-- Checkbox -->
-        <div class="mt-0.5">
-            <input type="checkbox"
-                   class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                   :checked="activity.completed">
+Description: Composant réutilisable qui affiche une activité avec tous ses indicateurs visuels
+et permet les interactions utilisateur.
+
+Données attendues:
+- activity: Objet Activité à afficher avec ses propriétés (title, duration, due_date, is_priority, is_template, is_completed)
+- list_color: Code couleur HEX de la liste parente (pour la bordure)
+
+Données produites:
+- Rendu HTML d'une carte d'activité avec indicateurs visuels et interactions
+
+Contraintes:
+- Affichage cohérent des indicateurs (priorité, modèle, état)
+- Interaction par double-clic pour modifier l'activité
+- Respect de la charte visuelle (couleurs, espacements)
+-->
+
+<div class="activity-card relative bg-white rounded-md shadow-sm p-3 mb-2 border-l-4 dblclick-target"
+     style="border-left-color: {{ list_color }}"
+     x-data="{ hovered: false }"
+     @mouseenter="hovered = true"
+     @mouseleave="hovered = false"
+     {# 
+     La route pour éditer une activité n'existe pas encore, elle devra être ajoutée dans views.py.
+     Pour l'instant, nous utilisons la route de création avec l'ID de la liste.
+     #}
+     hx-get="{{ url_for('views.get_activity_form', list_id=activity.list_id) }}"
+     hx-target="#modal-container"
+     hx-trigger="dblclick"
+     hx-swap="innerHTML">
+
+    <!-- Contenu principal de la carte -->
+    <div class="card-content {% if activity.is_completed %}text-gray-400{% endif %}">
+        <!-- En-tête avec case à cocher et titre -->
+        <div class="card-header flex items-start mb-2">
+            <!-- Case à cocher à gauche -->
+            <div class="mr-2 mt-0.5">
+                <input type="checkbox" 
+                    class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+                    {% if activity.is_completed %}checked{% endif %}
+                    disabled>
+            </div>
+            
+            <!-- Titre et date d'échéance -->
+            <div class="flex-grow">
+                <!-- Titre de l'activité (barré si complétée) -->
+                <div class="activity-title {% if activity.is_completed %}line-through{% endif %}">
+                    <span class="font-medium text-sm">{{ activity.title }}</span>
+                </div>
+                
+                <!-- Date d'échéance avec formatDueDateShort() -->
+                {% if activity.due_date and activity.due_date.strftime('%Y-%m-%d') != '2099-12-31' %}
+                <div class="activity-due-date text-xs text-gray-500 mt-1" id="date-{{ activity.id }}">
+                    {{ activity.due_date.strftime('%d/%m/%Y') }}
+                    <script>
+                        document.getElementById('date-{{ activity.id }}').textContent = formatDueDateShort('{{ activity.due_date.isoformat() }}');
+                    </script>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Indicateurs visuels (priorité et modèle) -->
+            <div class="activity-indicators flex space-x-1 ml-2">
+                {% if activity.is_priority %}
+                <span class="indicator priority" title="Prioritaire">
+                    <span class="inline-block w-3 h-3 rounded-full bg-red-500"></span>
+                </span>
+                {% endif %}
+                
+                {% if activity.is_template %}
+                <span class="indicator model" title="Modèle">
+                    <span class="inline-block w-3 h-3 rounded-full bg-purple-500"></span>
+                </span>
+                {% endif %}
+            </div>
         </div>
 
-        <!-- Contenu principal -->
-        <div class="ml-2 flex-grow">
-            <div class="flex flex-col">
-                <span class="text-sm font-medium"
-                      :class="{ 'line-through text-gray-400': activity.completed }"
-                      x-text="activity.title">
-                </span>
-                <span class="text-xxs text-gray-500" x-text="typeof formatDueDateShort === 'function' ? formatDueDateShort(activity.due_date) : activity.due_date"></span>
+        <!-- Pied de carte avec durée -->
+        <div class="card-footer flex justify-end text-xs text-gray-500 mt-2">
+            <!-- Affichage de la durée (S/M/L avec tirets) -->
+            <div class="activity-duration">
+                {% if activity.duration.value == 'S' %}
+                <span title="Courte durée">- S</span>
+                {% elif activity.duration.value == 'M' %}
+                <span title="Durée moyenne">-- M</span>
+                {% elif activity.duration.value == 'L' %}
+                <span title="Longue durée">--- L</span>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Indicateur de durée (S/M/L avec traits) -->
-    <div class="absolute bottom-1 right-2 text-xxs text-gray-400">
-        <template x-if="activity.duration.includes('SMALL')">
-            <span>* S</span>
-        </template>
-        <template x-if="activity.duration.includes('MEDIUM')">
-            <span>** M</span>
-        </template>
-        <template x-if="activity.duration.includes('LARGE')">
-            <span>*** L</span>
-        </template>
-    </div>
+    <!-- Bordure de survol (visible uniquement au survol) -->
+    <div x-show="hovered" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="absolute inset-0 border-2 rounded-md pointer-events-none"
+         style="border-color: {{ list_color }}"></div>
 </div>

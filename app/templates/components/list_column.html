@@ -1,67 +1,97 @@
-<!-- app/templates/components/list_column.html -->
-<div class="bg-white rounded-lg shadow-md md:w-1/3 lists-column" x-data="{ active: true }">
+<!-- 
+app/templates/components/list_column.html
+
+Rôle fonctionnel: Composant racine affichant la colonne des listes
+
+Description: Affiche l'en-tête de la colonne des listes avec titre et boutons d'action,
+et charge dynamiquement le contenu des listes via HTMX.
+
+Données attendues: Aucune (composant racine chargé directement dans dashboard.html)
+
+Données produites:
+- Structure HTML complète de la colonne des listes
+- Déclencheurs HTMX pour charger les listes dynamiquement
+
+Contraintes:
+- Doit fonctionner dans la grille de disposition du tableau de bord
+- Doit charger correctement les listes au chargement de la page
+-->
+
+<div class="bg-white shadow rounded-lg md:w-1/3 lists-column" x-data="{ isExpanded: true }">
     <!-- En-tête de la colonne -->
-    <div class="column-header p-3 border-b flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-gray-800">Listes</h2>
-        <div class="flex items-center">
-            <!-- Menu d'actions avec dropdown -->
-            <div x-data="{ open: false }" class="relative">
-                <button 
-                    @click="open = !open" 
-                    class="text-gray-500 hover:text-gray-700 text-sm p-1 rounded-full hover:bg-gray-200"
-                    title="Actions">
-                    <i class="fas fa-ellipsis-h"></i>
-                </button>
-                <!-- Dropdown menu -->
-                <div 
-                    x-show="open" 
-                    @click.away="open = false" 
-                    class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
-                    x-transition>
-                    <div class="py-1">
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                           @click="open = false"
-                           hx-get="{{ url_for('views.get_list_form') }}"
-                           hx-target="#modal-container">
-                            <i class="fas fa-list w-5 text-blue-500"></i>
-                            <span>Ajouter une liste</span>
-                        </a>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                           @click="open = false"
-                           hx-get="{{ url_for('views.get_sublist_form') }}"
-                           hx-target="#modal-container">
-                            <i class="fas fa-sitemap w-5 text-blue-500"></i>
-                            <span>Ajouter une sous-liste</span>
-                        </a>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                           @click="open = false"
-                           hx-get="{{ url_for('views.get_activity_form') }}"
-                           hx-target="#modal-container">
-                            <i class="fas fa-calendar-week w-5 text-blue-500"></i>
-                            <span>Ajouter une activité</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <!-- Bouton pour réduire/agrandir sur mobile -->
-            <button class="md:hidden ml-2 p-1 text-gray-500" @click="active = !active">
-                <i class="fas" :class="active ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+    <div class="column-header flex justify-between items-center px-4 py-3 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-800">
+            Listes
+        </h2>
+        
+        <!-- Boutons d'action -->
+        <div class="flex space-x-1">
+            <!-- Menu contextuel pour l'ajout -->
+            {% with 
+                menu_id="list-column-add-menu",
+                button_icon="fa-ellipsis-v",
+                button_title="Menu d'ajout",
+                items=[
+                    {
+                        "label": "Ajouter une liste",
+                        "icon": "fa-list",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.get_list_form'),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    },
+                    {
+                        "label": "Ajouter une sous-liste",
+                        "icon": "fa-sitemap",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.get_sublist_form'),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    },
+                    {
+                        "label": "Ajouter une activité",
+                        "icon": "fa-calendar-week",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.get_activity_form'),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    }
+                ]
+            %}
+                {% include "components/contextual_menu.html" %}
+            {% endwith %}
+            
+            <!-- Bouton d'expansion/réduction sur mobile -->
+            <button 
+                class="md:hidden p-1.5 text-gray-500 hover:text-gray-700"
+                @click="isExpanded = !isExpanded" 
+                :aria-expanded="isExpanded"
+                aria-label="Développer/Réduire la colonne">
+                <i class="fas" :class="isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
             </button>
         </div>
     </div>
     
-    <!-- Contenu de la colonne -->
-    <div class="column-content p-3 hide-scrollbar" x-show="active">
-        <!-- Conteneur pour les listes avec alignement uniforme -->
-        <div id="lists-container" 
-             class="list-container"
-             hx-get="{{ url_for('views.get_lists') }}" 
-             hx-trigger="load, refresh from:body" 
-             hx-swap="innerHTML">
-            <!-- Le contenu sera chargé dynamiquement via lists.html -->
+    <!-- Corps de la colonne -->
+    <div 
+        class="column-content hide-scrollbar" 
+        x-show="isExpanded"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 transform -translate-y-4"
+        x-transition:enter-end="opacity-100 transform translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 transform translate-y-0"
+        x-transition:leave-end="opacity-0 transform -translate-y-4">
+        
+        <!-- Le contenu sera chargé dynamiquement via HTMX -->
+        <div 
+            id="lists-container"
+            hx-get="{{ url_for('views.get_lists') }}" 
+            hx-trigger="load, listRefresh from:body"
+            hx-swap="innerHTML">
             
-            <!-- Indicateur de chargement -->
-            <div class="flex justify-center items-center p-4">
+            <!-- Indicateur de chargement (affiché pendant le chargement) -->
+            <div class="flex justify-center items-center p-8">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
         </div>

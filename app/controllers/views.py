@@ -1,4 +1,26 @@
-# app/controllers/views.py
+"""
+app/controllers/views.py
+
+Rôle fonctionnel: Contrôleur gérant l'affichage des vues principales et des composants HTMX
+
+Description: Ce fichier contient toutes les routes de présentation du semainier,
+incluant les 3 colonnes principales, les composants de liste/sous-liste/activité
+et les modales de création/édition/suppression. Ces routes sont principalement appelées
+via HTMX pour le rechargement partiel des éléments d'interface.
+
+Données attendues:
+- Paramètres d'URL (identifiants de liste, sous-liste, activité)
+- Paramètres de requête pour les filtres et sélections
+
+Données produites:
+- Fragments HTML rendus par Jinja2 avec les modèles correspondants
+- Structure complète (dashboard) ou partielle (composants) selon les appels
+
+Contraintes:
+- Les templates associés doivent être structurés pour un affichage correct
+- Les composants doivent fonctionner indépendamment pour les mises à jour HTMX
+- La navigation entre modales et composants est gérée côté client
+"""
 
 from flask import Blueprint, render_template, url_for, abort, request
 from app.models.list import List
@@ -11,31 +33,70 @@ views = Blueprint('views', __name__)
 
 @views.route('/')
 def dashboard():
-    """Affiche le tableau de bord principal avec les trois colonnes."""
+    """
+    Affiche le tableau de bord principal avec les trois colonnes.
+    
+    Cette route charge la page complète de l'application, incluant:
+    - La colonne des listes/sous-listes
+    - La colonne des objectifs de la semaine
+    - La colonne de l'emploi du temps
+    
+    Retourne:
+    - Page HTML complète du tableau de bord
+    """
     return render_template('pages/dashboard.html')
 
 @views.route('/settings')
 def settings():
-    """Affiche la page des paramètres."""
+    """
+    Affiche la page des paramètres de l'application.
+    
+    Cette page permet de configurer:
+    - Les unités de temps
+    - L'heure de début de journée
+    - Le nombre d'unités par jour
+    
+    Retourne:
+    - Page HTML des paramètres
+    """
     return render_template('pages/settings.html')
 
 # ===== Routes pour les composants =====
 
 @views.route('/lists')
 def get_lists():
-    """Récupère et affiche toutes les listes avec leurs sous-listes et activités."""
+    """
+    Récupère et affiche toutes les listes avec leurs sous-listes et activités.
+    
+    Cette route est appelée par HTMX pour charger la colonne de gauche.
+    
+    Retourne:
+    - Rendu HTML du composant de liste complet
+    """
     lists = List.query.all()
     return render_template('components/lists.html', lists=lists)
 
 @views.route('/list/<int:list_id>')
 def get_list(list_id):
-    """Récupère et affiche une liste spécifique avec ses sous-listes et activités."""
+    """
+    Récupère et affiche une liste spécifique avec ses sous-listes et activités.
+    
+    Cette route est appelée par HTMX lors du clic sur une liste ou
+    après la modification/création d'une liste.
+    
+    Paramètres:
+    - list_id: Identifiant unique de la liste à afficher
+    
+    Retourne:
+    - Rendu HTML du contenu de la liste spécifiée
+    - Erreur 404 si la liste n'existe pas
+    """
     list_item = List.query.get_or_404(list_id)
     sublists = Sublist.query.filter_by(list_id=list_id).all()
     activities = Activity.query.filter_by(list_id=list_id, sublist_id=None).all()
     
     return render_template(
-        'components/list_container.html',  # Utilise le nouveau template
+        'components/list_content.html',
         list_item=list_item,
         sublists=sublists,
         activities=activities
@@ -43,7 +104,19 @@ def get_list(list_id):
 
 @views.route('/sublist/<int:sublist_id>')
 def get_sublist(sublist_id):
-    """Récupère et affiche une sous-liste spécifique avec ses activités."""
+    """
+    Récupère et affiche une sous-liste spécifique avec ses activités.
+    
+    Cette route est appelée par HTMX lors du clic sur une sous-liste ou
+    après la modification/création d'une sous-liste ou de ses activités.
+    
+    Paramètres:
+    - sublist_id: Identifiant unique de la sous-liste à afficher
+    
+    Retourne:
+    - Rendu HTML du contenu de la sous-liste spécifiée
+    - Erreur 404 si la sous-liste n'existe pas
+    """
     sublist = Sublist.query.get_or_404(sublist_id)
     activities = Activity.query.filter_by(sublist_id=sublist_id).all()
     
@@ -57,13 +130,32 @@ def get_sublist(sublist_id):
 
 @views.route('/modals/create-list')
 def get_list_form():
-    """Affiche le formulaire de création de liste."""
+    """
+    Affiche le formulaire de création de liste.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale de création.
+    
+    Retourne:
+    - Rendu HTML du formulaire de création de liste
+    """
     return render_template('modals/create_edit_list_modal.html', 
                           title="Créer une liste")
 
 @views.route('/modals/edit-list/<int:list_id>')
 def edit_list_form(list_id):
-    """Affiche le formulaire d'édition de liste."""
+    """
+    Affiche le formulaire d'édition de liste.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale d'édition
+    pré-remplie avec les données de la liste existante.
+    
+    Paramètres:
+    - list_id: Identifiant unique de la liste à modifier
+    
+    Retourne:
+    - Rendu HTML du formulaire d'édition de liste
+    - Erreur 404 si la liste n'existe pas
+    """
     list_item = List.query.get_or_404(list_id)
     return render_template('modals/create_edit_list_modal.html', 
                           title="Modifier une liste",
@@ -75,7 +167,18 @@ def edit_list_form(list_id):
 @views.route('/modals/create-sublist', defaults={'list_id': None})
 @views.route('/modals/create-sublist/<int:list_id>')
 def get_sublist_form(list_id):
-    """Affiche le formulaire de création de sous-liste."""
+    """
+    Affiche le formulaire de création de sous-liste.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale de création.
+    Si list_id est fourni, le sélecteur de liste est pré-rempli.
+    
+    Paramètres:
+    - list_id: Identifiant de la liste parente (optionnel)
+    
+    Retourne:
+    - Rendu HTML du formulaire de création de sous-liste
+    """
     # Récupérer toutes les listes pour le sélecteur
     lists = List.query.all()
     return render_template('modals/create_edit_sublist_modal.html', 
@@ -85,7 +188,19 @@ def get_sublist_form(list_id):
 
 @views.route('/modals/edit-sublist/<int:sublist_id>')
 def edit_sublist_form(sublist_id):
-    """Affiche le formulaire d'édition de sous-liste."""
+    """
+    Affiche le formulaire d'édition de sous-liste.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale d'édition
+    pré-remplie avec les données de la sous-liste existante.
+    
+    Paramètres:
+    - sublist_id: Identifiant unique de la sous-liste à modifier
+    
+    Retourne:
+    - Rendu HTML du formulaire d'édition de sous-liste
+    - Erreur 404 si la sous-liste n'existe pas
+    """
     sublist = Sublist.query.get_or_404(sublist_id)
     lists = List.query.all()
     return render_template('modals/create_edit_sublist_modal.html', 
@@ -96,7 +211,20 @@ def edit_sublist_form(sublist_id):
 
 @views.route('/api/sublists-for-list')
 def get_sublists_for_list():
-    """Endpoint AJAX pour récupérer les sous-listes d'une liste spécifique."""
+    """
+    Endpoint AJAX pour récupérer les sous-listes d'une liste spécifique.
+    
+    Cette route est appelée dynamiquement lors du changement de sélection
+    de liste dans les formulaires d'activité, pour mettre à jour les options
+    de sous-listes disponibles.
+    
+    Paramètres de requête:
+    - list_id: Identifiant de la liste pour filtrer les sous-listes
+    - sublist_id: Identifiant de la sous-liste actuellement sélectionnée (optionnel)
+    
+    Retourne:
+    - Rendu HTML des options de sous-liste pour la liste sélectionnée
+    """
     list_id = request.args.get('list_id', type=int)
     if not list_id:
         return render_template('components/sublist_options.html', sublists=[])
@@ -118,7 +246,19 @@ def get_sublists_for_list():
 @views.route('/modals/create-activity', defaults={'list_id': None})
 @views.route('/modals/create-activity/<int:list_id>')
 def get_activity_form(list_id):
-    """Affiche le formulaire de création d'activité."""
+    """
+    Affiche le formulaire de création d'activité.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale de création.
+    Si list_id est fourni, le sélecteur de liste est pré-rempli et les
+    sous-listes correspondantes sont chargées.
+    
+    Paramètres:
+    - list_id: Identifiant de la liste parente (optionnel)
+    
+    Retourne:
+    - Rendu HTML du formulaire de création d'activité
+    """
     # Récupérer toutes les listes pour le sélecteur
     lists = List.query.all()
     sublists = []
@@ -135,7 +275,21 @@ def get_activity_form(list_id):
 
 @views.route('/modals/confirm-delete/<string:type>/<int:id>')
 def get_delete_confirmation(type, id):
-    """Affiche la confirmation de suppression pour une liste ou sous-liste."""
+    """
+    Affiche la confirmation de suppression pour une liste ou sous-liste.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale de confirmation
+    avant la suppression définitive d'un élément.
+    
+    Paramètres:
+    - type: Type d'élément à supprimer ('list' ou 'sublist')
+    - id: Identifiant unique de l'élément à supprimer
+    
+    Retourne:
+    - Rendu HTML de la confirmation de suppression avec message approprié
+    - Erreur 404 si l'élément n'existe pas
+    - Erreur 400 si le type n'est pas valide
+    """
     if type == 'list':
         item = List.query.get_or_404(id)
         name = item.name

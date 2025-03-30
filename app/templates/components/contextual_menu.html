@@ -1,0 +1,81 @@
+<!-- 
+app/templates/components/contextual_menu.html
+
+Rôle fonctionnel: Composant réutilisable pour afficher un menu contextuel d'actions
+
+Description: Ce composant affiche un menu déroulant avec des actions contextuelles,
+adaptables selon le contexte (liste, sous-liste, activité) et la colonne.
+
+Données attendues:
+- menu_id: Identifiant unique pour le menu (obligatoire pour éviter les conflits)
+- button_class: Classes CSS pour le bouton déclencheur (optionnel)
+- button_icon: Classe de l'icône FontAwesome pour le bouton (par défaut: fa-ellipsis-h)
+- button_title: Texte d'infobulle pour le bouton (optionnel)
+- items: Liste des éléments du menu, chaque élément contenant:
+  - label: Texte de l'élément
+  - icon: Classe de l'icône FontAwesome
+  - action_type: Type d'action ('hx-get', 'hx-post', 'hx-delete', etc.)
+  - action_url: URL de l'action
+  - target: Cible de l'action (ex: '#modal-container')
+  - swap: Méthode de mise à jour (ex: 'innerHTML')
+  - confirm: Message de confirmation (optionnel)
+  - classes: Classes CSS additionnelles pour l'élément (optionnel)
+
+Données produites:
+- Menu déroulant avec des options cliquables
+- Événements HTMX pour les actions
+
+Contraintes:
+- Doit être réutilisable dans différents contextes
+- Doit être accessible et facile à utiliser
+- Doit fonctionner avec Alpine.js pour la gestion de l'état
+-->
+
+<div 
+    x-data="{ open: false }" 
+    class="relative inline-block text-left" 
+    @click.away="open = false"
+    id="{{ menu_id|default('menu-' ~ range(1000, 9999)|random) }}">
+    
+    <!-- Bouton déclencheur -->
+    <button 
+        type="button" 
+        @click.stop="open = !open"
+        class="{{ button_class|default('text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-200 focus:outline-none') }}"
+        title="{{ button_title|default('Options') }}">
+        <i class="fas {{ button_icon|default('fa-ellipsis-h') }}"></i>
+    </button>
+    
+    <!-- Menu déroulant -->
+    <div 
+        x-show="open" 
+        x-transition:enter="transition ease-out duration-100"
+        x-transition:enter-start="transform opacity-0 scale-95"
+        x-transition:enter-end="transform opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-75"
+        x-transition:leave-start="transform opacity-100 scale-100"
+        x-transition:leave-end="transform opacity-0 scale-95"
+        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 py-1"
+        style="display: none;">
+        
+        {% if items and items|length > 0 %}
+            {% for item in items %}
+                {% if item.label and item.action_url %}
+                    <a 
+                        href="#"
+                        class="flex items-center px-4 py-2 text-sm {{ item.classes|default('text-gray-700 hover:bg-gray-100') }}"
+                        {% if item.action_type %}{{ item.action_type }}="{{ item.action_url }}"{% endif %}
+                        {% if item.target %}hx-target="{{ item.target }}"{% endif %}
+                        {% if item.swap %}hx-swap="{{ item.swap }}"{% endif %}
+                        {% if item.confirm %}hx-confirm="{{ item.confirm }}"{% endif %}
+                        @click="open = false">
+                        <i class="fas {{ item.icon }} w-5 mr-2"></i>
+                        <span>{{ item.label }}</span>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="px-4 py-2 text-sm text-gray-500 italic">Aucune action disponible</div>
+        {% endif %}
+    </div>
+</div>

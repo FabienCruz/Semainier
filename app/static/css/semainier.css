@@ -1,4 +1,16 @@
-/* app/static/css/semainier.css */
+/* --- Animations pour l'ouverture/fermeture des listes et sous-listes --- */
+
+.expand-transition {
+    transition: max-height 0.35s ease-out, opacity 0.25s ease-out;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.expand-transition.expanded {
+    max-height: 1000px;
+    opacity: 1;
+}/* app/static/css/semainier.css */
 
 body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -46,10 +58,10 @@ body {
     position: relative;
 }
 
-/* Indentation visuelle pour les sous-listes */
+/* Suppression de l'indentation visuelle pour les sous-listes */
 .sublist-container {
     position: relative;
-    padding-left: 1rem;
+    padding-left: 0; /* Suppression de l'indentation */
 }
 
 /* Définition d'un système de coordonnées pour les cartes d'activité */
@@ -76,9 +88,9 @@ body {
 .sublist-activities .activity-card-container {
     /* Position à la même hauteur que celles de la liste principale */
     position: relative;
-    left: -1rem; /* Annule l'indentation de la sous-liste */
-    padding-left: 1rem; /* Maintient l'espace interne */
-    width: calc(100% + 1rem); /* Assure que la carte conserve sa largeur complète */
+    left: 0; /* Annule l'indentation de la sous-liste */
+    padding-left: 0; /* Maintient l'espace interne */
+    width: 100%; /* Assure que la carte conserve sa largeur complète */
 }
 
 /* --- Système de bordures colorées simplifié --- */
@@ -117,18 +129,18 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* --- Animations pour l'ouverture/fermeture des listes et sous-listes --- */
+/* --- Amélioration des contrôles d'interface --- */
 
-.expand-transition {
-    transition: max-height 0.35s ease-out, opacity 0.25s ease-out;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
+/* Amélioration des boutons toggle et menu */
+.sublist-header button, 
+.list-header button {
+    border-radius: 0.25rem;
+    transition: background-color 0.15s ease;
 }
 
-.expand-transition.expanded {
-    max-height: 1000px;
-    opacity: 1;
+.sublist-header button:hover, 
+.list-header button:hover {
+    background-color: rgba(229, 231, 235, 1); /* gray-200 */
 }
 
 /* Animation pour les icônes de toggle */
@@ -163,4 +175,31 @@ body {
 
 .activity-card.dblclick-target:active::after {
     background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* --- Correction pour les menus contextuels --- */
+
+/* Assure que les menus contextuels apparaissent correctement */
+.list-container .absolute,
+.sublist-container .absolute {
+    z-index: 50;
+    overflow: visible;
+}
+
+/* Les menus doivent pouvoir déborder de leurs conteneurs */
+.list-container,
+.sublist-container,
+.list-content {
+    overflow: visible;
+}
+
+/* Les colonnes aussi doivent permettre le débordement */
+.column-content {
+    overflow-x: visible;
+}
+
+/* Assure que le conteneur du menu reste correctement positionné */
+.list-header .relative,
+.sublist-header .relative {
+    position: relative;
 }
