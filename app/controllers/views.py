@@ -271,6 +271,32 @@ def get_activity_form(list_id):
                           sublists=sublists,
                           selected_list_id=list_id)
 
+@views.route('/modals/edit-activity/<int:activity_id>')
+def edit_activity_form(activity_id):
+    """
+    Affiche le formulaire d'édition d'activité.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale d'édition
+    pré-remplie avec les données de l'activité existante.
+    
+    Paramètres:
+    - activity_id: Identifiant unique de l'activité à modifier
+    
+    Retourne:
+    - Rendu HTML du formulaire d'édition d'activité
+    - Erreur 404 si l'activité n'existe pas
+    """
+    activity = Activity.query.get_or_404(activity_id)
+    lists = List.query.all()
+    sublists = Sublist.query.filter_by(list_id=activity.list_id).all()
+    
+    return render_template('modals/create_edit_activity_modal.html', 
+                          title="Modifier une activité",
+                          activity=activity,
+                          activity_id=activity_id,
+                          lists=lists,
+                          sublists=sublists)
+
 # ===== Routes pour les modales de confirmation =====
 
 @views.route('/modals/confirm-delete/<string:type>/<int:id>')

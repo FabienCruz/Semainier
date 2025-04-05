@@ -1,16 +1,6 @@
 # Logique d'affichage des listes et activités
 
-## Présentation Générale
-
-L'architecture des templates pour le Semainier adopte une approche modulaire basée sur des composants réutilisables avec des interfaces clairement définies. Cette architecture assure un alignement visuel cohérent des cartes d'activité et améliore la maintenabilité globale du code.
-
 ## Principes fondamentaux
-
-### Composants modulaires avec paramètres explicites
-
-- Chaque composant accepte des paramètres clairement définis
-- Les composants n'accèdent pas au contexte global sans l'avoir reçu explicitement
-- Les comportements sont encapsulés dans chaque composant
 
 ### Passage de paramètres standardisé
 
@@ -121,15 +111,6 @@ L'architecture des templates pour le Semainier adopte une approche modulaire bas
    - Survol des éléments: Changement de couleur/ombre pour indiquer l'interactivité
    - Actions en cours: Spinners de chargement pendant les requêtes HTMX
    - États vides: Messages explicites avec appels à l'action
-
-## Avantages de cette architecture
-
-- **Séparation claire des responsabilités**: Chaque composant a un rôle bien défini
-- **Maintenabilité améliorée**: Les modifications peuvent être faites de manière isolée
-- **Cohérence visuelle**: Alignement standardisé et comportements prévisibles
-- **Performance optimisée**: Chargement paresseux du contenu via HTMX
-- **Expérience utilisateur fluide**: Transitions animées et retours visuels immédiats
-- **Adaptabilité**: Structure responsive qui s'adapte aux différentes tailles d'écran
 
 ## Technologies utilisées
 

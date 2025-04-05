@@ -37,11 +37,13 @@ def create_app():
     from app.controllers.sublist import bp as sublist_bp
     from app.controllers.activity import bp as activity_bp
     from app.controllers.views import views
+    from app.controllers.settings import settings_bp
     
     app.register_blueprint(list_bp)
     app.register_blueprint(sublist_bp)
     app.register_blueprint(activity_bp)
     app.register_blueprint(views)
+    app.register_blueprint(settings_bp)
     
     # Simple route pour tester que l'application fonctionne
     @app.route('/hello')
