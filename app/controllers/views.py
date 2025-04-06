@@ -26,6 +26,7 @@ from flask import Blueprint, render_template, url_for, abort, request
 from app.models.list import List
 from app.models.sublist import Sublist
 from app.models.activity import Activity
+from app.models.settings import Settings
 
 views = Blueprint('views', __name__)
 
@@ -50,7 +51,6 @@ def dashboard():
 def settings():
     """
     Affiche la page des paramètres de l'application.
-    
     Cette page permet de configurer:
     - Les unités de temps
     - L'heure de début de journée
@@ -59,7 +59,11 @@ def settings():
     Retourne:
     - Page HTML des paramètres
     """
-    return render_template('pages/settings.html')
+    
+    # Récupérer les paramètres actuels
+    settings_obj = Settings.query.first()
+    
+    return render_template('pages/settings.html', settings=settings_obj)
 
 # ===== Routes pour les composants =====
 
