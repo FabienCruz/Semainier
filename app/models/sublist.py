@@ -1,3 +1,15 @@
+"""
+File: app/models/sublist.py
+Role: Modèle de données pour les sous-listes
+Description: Définit le modèle Sublist qui permet d'organiser les activités en sous-catégories au sein d'une liste
+Input data: Nom de la sous-liste, liste parente et position optionnelle
+Output data: Objet Sublist avec relations vers ses activités associées
+Business constraints:
+- Une sous-liste doit obligatoirement appartenir à une liste parente
+- Le nom d'une sous-liste doit être unique au sein d'une même liste parente
+- La suppression d'une sous-liste entraîne la suppression cascade de toutes ses activités
+- La position permet d'ordonner les sous-listes au sein d'une même liste
+"""
 from app import db
 from datetime import datetime, timezone
 

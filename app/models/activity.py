@@ -1,3 +1,17 @@
+"""
+File: app/models/activity.py
+Role: Modèle de données pour les activités
+Description: Définit le modèle Activity qui représente les tâches et activités dans le semainier
+Input data: Titre, liste parente, sous-liste optionnelle, durée, date d'échéance, etc.
+Output data: Objet Activity avec méthodes pour gérer les échéances et le statut
+Business constraints:
+- La durée peut être S (small), M (medium) ou L (large)
+- Une activité doit toujours appartenir à une liste
+- Si une sous-liste est spécifiée, elle doit appartenir à la liste parente
+- La date d'échéance par défaut est fixée au 31/12/2099
+- Les activités peuvent être marquées comme prioritaires, modèles, ou terminées
+"""
+
 from app import db
 from datetime import datetime, timezone, date, timedelta
 from enum import Enum

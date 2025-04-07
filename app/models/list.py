@@ -1,3 +1,16 @@
+"""
+File: app/models/list.py
+Role: Modèle de données pour les listes
+Description: Définit le modèle List qui représente les catégories principales pour organiser les activités
+Input data: Nom de la liste et code couleur optionnel
+Output data: Objet List avec relations vers les sous-listes et activités associées
+Business constraints:
+- Le nom de la liste doit être unique
+- Une liste peut contenir plusieurs sous-listes et activités
+- La suppression d'une liste entraîne la suppression cascade de toutes ses sous-listes et activités
+- Le code couleur par défaut est #3C91E6 (bleu)
+"""
+
 from app import db
 from datetime import datetime, timezone
 
