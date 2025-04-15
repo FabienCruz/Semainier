@@ -57,10 +57,16 @@ def create_app():
     app.register_blueprint(activity_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(weekly_goal_bp)
-    
-    # Simple route pour tester que l'application fonctionne
-    @app.route('/hello')
-    def hello():
-        return 'Bonjour, le semainier fonctionne!'
+
+    @app.context_processor
+    def inject_date_info():
+        """
+        Injecte les informations de date dans tous les templates
+        """
+        from app.utils.date_utils import get_server_date_info
+        
+        return {
+            'server_date_info': get_server_date_info()
+        }
     
     return app

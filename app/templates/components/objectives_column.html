@@ -1,0 +1,109 @@
+<!-- 
+app/templates/components/objectives_column.html
+
+Rôle fonctionnel: Composant racine affichant la colonne des objectifs de la semaine
+
+Description: Affiche l'en-tête de la colonne des objectifs avec titre et boutons d'action,
+et charge dynamiquement le contenu des activités séparées en sections priorité/standard.
+Permet également d'accéder à la gestion des objectifs textuels de la semaine.
+
+Données attendues: Aucune (composant racine chargé directement dans dashboard.html)
+
+Données produites:
+- Structure HTML complète de la colonne des objectifs
+- Déclencheurs HTMX pour charger les activités dynamiquement
+
+Contraintes:
+- Doit fonctionner dans la grille de disposition du tableau de bord
+- Doit charger correctement les activités au chargement de la page
+- Doit séparer visuellement les activités prioritaires et standards
+-->
+
+<div class="bg-white shadow rounded-lg md:w-1/3 objectives-column" x-data="{ isExpanded: true }">
+    <!-- En-tête de la colonne -->
+    <div class="column-header flex justify-between items-center px-4 py-3 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-800">
+            {{ get_week_column_title() }}
+        </h2>
+        
+        <!-- Boutons d'action -->
+        <div class="flex space-x-1">
+            <!-- Menu contextuel pour les actions -->
+            {% with 
+                menu_id="objectives-column-menu",
+                button_icon="fa-ellipsis-v",
+                button_title="Menu d'actions",
+                items=[
+                    {
+                        "label": "Ajouter une activité",
+                        "icon": "fa-plus",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.get_activity_form'),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    },
+                    {
+                        "label": "Définir objectifs",
+                        "icon": "fa-bullseye",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.get_weekly_goal_form'),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    },
+                    {
+                        "label": "Vérifier WIP limit",
+                        "icon": "fa-tachometer-alt",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.check_wip_limit'),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    },
+                    {
+                        "label": "Archiver",
+                        "icon": "fa-archive",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.archive_objectives'),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    }
+                ]
+            %}
+                {% include "components/contextual_menu.html" %}
+            {% endwith %}
+            
+            <!-- Bouton d'expansion/réduction sur mobile -->
+            <button 
+                class="md:hidden p-1.5 text-gray-500 hover:text-gray-700"
+                @click="isExpanded = !isExpanded" 
+                :aria-expanded="isExpanded"
+                aria-label="Développer/Réduire la colonne">
+                <i class="fas" :class="isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Corps de la colonne -->
+    <div 
+        class="column-content hide-scrollbar" 
+        x-show="isExpanded"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 transform -translate-y-4"
+        x-transition:enter-end="opacity-100 transform translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 transform translate-y-0"
+        x-transition:leave-end="opacity-0 transform -translate-y-4">
+        
+        <!-- Le contenu sera chargé dynamiquement via HTMX -->
+        <div 
+            id="objectives-container"
+            hx-get="{{ url_for('views.get_weekly_activities') }}" 
+            hx-trigger="load, objectivesRefresh from:body"
+            hx-swap="innerHTML">
+            
+            <!-- Indicateur de chargement (affiché pendant le chargement) -->
+            <div class="flex justify-center items-center p-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
+    </div>
+</div>

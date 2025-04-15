@@ -73,5 +73,26 @@
     <div id="modal-container"></div>
     
     {% block scripts %}{% endblock %}
+
+<!-- Informations de date du serveur -->
+<script>
+    // Informations de semaine fournies par le serveur
+    window.serverDateInfo = {
+        currentDate: "{{ server_date_info.current_date }}",
+        weekStart: "{{ server_date_info.week_start }}",
+        weekEnd: "{{ server_date_info.week_end }}",
+        displayRange: "{{ server_date_info.display_range }}",
+        isCurrentWeek: {{ server_date_info.is_current_week|tojson }},
+        days: {{ server_date_info.days|tojson|safe }}
+    };
+    
+    // Initialiser les utilitaires de date avec ces informations
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.DateUtils && window.DateUtils.initWithServerInfo) {
+            window.DateUtils.initWithServerInfo(window.serverDateInfo);
+        }
+    });
+</script>
+
 </body>
 </html>

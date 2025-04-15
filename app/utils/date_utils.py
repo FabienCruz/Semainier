@@ -3,7 +3,7 @@ File: app/utils/date_utils.py
 Role: Utilitaires de gestion des dates
 Description: Fournit des fonctions pour manipuler et formater les dates, en particulier pour les calculs liés aux semaines
 Input data: Objets de type date, datetime ou chaînes de caractères représentant des dates
-Output data: Dates formatées, bornes de semaine, informations de semaine
+Output data: Dates formatées, bornes de semaine, informations de semaine pour le contexte global
 Business constraints:
 - La semaine commence le lundi et se termine le dimanche
 - Les formats courts utilisent des abréviations françaises pour les jours et mois
@@ -38,7 +38,7 @@ def get_week_bounds(reference_date: Optional[Union[date, str]] = None) -> Tuple[
 
 def format_date_short(dt: Union[date, datetime, None]) -> str:
     """
-    Formate une date au format "j mmm" (ex: "1 mar")
+    Formate une date au format "JJ/MM" (ex: "01/03")
     
     Args:
         dt: Objet date ou datetime
@@ -52,38 +52,7 @@ def format_date_short(dt: Union[date, datetime, None]) -> str:
     if isinstance(dt, datetime):
         dt = dt.date()
     
-    months = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 
-              'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
-    return f"{dt.day} {months[dt.month-1]}"
-
-def get_week_column_title(reference_date: Optional[Union[date, str]] = None) -> str:
-    """
-    Génère le titre formaté pour la colonne "Objectifs de la semaine"
-    
-    Args:
-        reference_date: Date de référence (aujourd'hui par défaut)
-        
-    Returns:
-        str: Titre formaté (ex: "Semaine du 1 mar au 7 mar")
-    """
-    start_date, end_date = get_week_bounds(reference_date)
-    return f"Semaine du {format_date_short(start_date)} au {format_date_short(end_date)}"
-
-def is_date_in_current_week(check_date: Union[date, str]) -> bool:
-    """
-    Vérifie si une date se trouve dans la semaine en cours
-    
-    Args:
-        check_date: Date à vérifier
-        
-    Returns:
-        bool: True si dans la semaine courante
-    """
-    if isinstance(check_date, str):
-        check_date = datetime.strptime(check_date, "%Y-%m-%d").date()
-        
-    start_date, end_date = get_week_bounds()
-    return start_date <= check_date <= end_date
+    return f"{dt.day:02d}/{dt.month:02d}"
 
 def format_weekday_short(dt: Union[date, datetime, None]) -> str:
     """
@@ -120,20 +89,23 @@ def format_date_full_short(dt: Union[date, datetime, None]) -> str:
     if isinstance(dt, datetime):
         dt = dt.date()
         
-    return f"{format_weekday_short(dt)} {dt.day:02d}/{dt.month:02d}"
+    return f"{format_weekday_short(dt)} {format_date_short(dt)}"
 
-def get_week_info(reference_date: Optional[Union[date, str]] = None) -> Dict:
+def get_server_date_info() -> Dict:
     """
-    Récupère les informations complètes sur une semaine
+    Génère les informations de date nécessaires pour le contexte global de l'application
     
-    Args:
-        reference_date: Date de référence dans la semaine (aujourd'hui par défaut)
-        
     Returns:
-        dict: Informations sur la semaine (dates de début/fin, titre, jours, etc.)
+        dict: Données de date pour le contexte de l'application, incluant:
+            - current_date: Date actuelle au format ISO
+            - week_start: Date du lundi de la semaine courante au format ISO
+            - week_end: Date du dimanche de la semaine courante au format ISO
+            - display_range: Plage de dates formatée pour affichage (ex: "lun 01/03 au dim 07/03")
+            - days: Liste des informations sur chaque jour de la semaine
+            - is_current_week: Booléen indiquant s'il s'agit de la semaine courante
     """
-    start_date, end_date = get_week_bounds(reference_date)
     today = date.today()
+    start_date, end_date = get_week_bounds(today)
     
     days = []
     for i in range(7):
@@ -148,32 +120,11 @@ def get_week_info(reference_date: Optional[Union[date, str]] = None) -> Dict:
             'is_future': day_date > today
         })
     
-    is_current_week = is_date_in_current_week(start_date)
-    
     return {
+        'current_date': today.isoformat(),
         'week_start': start_date.isoformat(),
         'week_end': end_date.isoformat(),
-        'display_range': f"{format_date_short(start_date)} au {format_date_short(end_date)}",
+        'display_range': f"{format_date_full_short(start_date)} au {format_date_full_short(end_date)}",
         'days': days,
-        'is_current_week': is_current_week
+        'is_current_week': True  # Toujours vrai pour la semaine courante
     }
-
-def get_next_week_start() -> date:
-    """
-    Retourne la date de début de la semaine prochaine
-    
-    Returns:
-        date: Date du lundi de la semaine prochaine
-    """
-    start_date, _ = get_week_bounds()
-    return start_date + timedelta(days=7)
-
-def get_previous_week_start() -> date:
-    """
-    Retourne la date de début de la semaine précédente
-    
-    Returns:
-        date: Date du lundi de la semaine précédente
-    """
-    start_date, _ = get_week_bounds()
-    return start_date - timedelta(days=7)
