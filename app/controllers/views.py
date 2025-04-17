@@ -337,3 +337,32 @@ def get_delete_confirmation(type, id):
                           title="Confirmer la suppression",
                           message=message,
                           delete_url=delete_url)
+
+# ===== Routes pour les modales d'objectif de la semaine =====
+
+@views.route('/modals/weekly-goal')
+def weekly_goal_form():
+    """
+    Affiche le formulaire d'édition des objectifs textuels de la semaine.
+    
+    Cette route est appelée par HTMX pour ouvrir la modale d'édition
+    des objectifs hebdomadaires.
+    
+    Retourne:
+    - Rendu HTML du formulaire d'édition des objectifs
+    """
+    from app.utils.date_utils import get_server_date_info
+    from app.models.weekly_goals import WeeklyGoal
+    from datetime import date
+    
+    # Récupérer les informations de la semaine courante
+    week_info = get_server_date_info()
+    start_date = date.fromisoformat(week_info['week_start'])
+    
+    # Rechercher l'objectif pour cette semaine
+    weekly_goal = WeeklyGoal.query.filter_by(week_start=start_date).first()
+    
+    return render_template('modals/create_edit_weekly_goal_modal.html', 
+                          title="Objectifs de la semaine",
+                          week_display=week_info['display_range'],
+                          content=weekly_goal.content if weekly_goal else "")

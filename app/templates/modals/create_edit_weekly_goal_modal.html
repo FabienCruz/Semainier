@@ -1,0 +1,80 @@
+<!--
+File: app/templates/modals/create_edit_weekly_goal_modal.html
+Role: Template de boîte de dialogue pour créer ou éditer les objectifs textuels de la semaine
+Description: Permet à l'utilisateur de visualiser et modifier le contenu des objectifs hebdomadaires
+Input data: 
+    - week_display: La plage de dates formatée (ex: "lun 01/03 au dim 07/03")
+    - content: Le contenu textuel des objectifs (peut être vide)
+Output data: Formulaire soumis via HTMX à /api/planning/weekly-goal
+Business constraints:
+    - Limite de 500 caractères pour le contenu textuel
+-->
+
+{% extends 'base_modal.html' %}
+
+{% block modal_content %}
+    <div class="weekly-goal-editor">
+        <!-- Affichage des dates de la semaine -->
+        <div class="mb-4 text-sm text-gray-600">
+            du {{ week_display }}
+        </div>
+
+        <!-- Formulaire d'édition -->
+        <form 
+            hx-post="/api/planning/weekly-goal"
+            hx-target="#modal-container"
+            hx-swap="outerHTML"
+            hx-indicator="#indicator"
+            hx-on::after-request="handleWeeklyGoalResponse(event)"
+        >
+            <!-- Message de statut -->
+            <div id="status-message" class="hidden"></div>
+
+            <!-- Champ de saisie des objectifs -->
+            <div class="mb-4">
+                <textarea 
+                    id="content" 
+                    name="content" 
+                    rows="6"
+                    maxlength="500"
+                    placeholder="Saisissez vos objectifs pour la semaine en cours (500 caractères max)"
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    x-data="{
+                        charCount: 0,
+                        maxChars: 500,
+                        init() {
+                            this.charCount = this.$el.value.length;
+                            this.$el.addEventListener('input', () => {
+                                this.charCount = this.$el.value.length;
+                            });
+                        }
+                    }"
+                >{{ content }}</textarea>
+                <div class="text-right text-xs text-gray-500 mt-1" x-text="`${charCount}/${maxChars} caractères`"></div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="flex justify-end space-x-2">
+                <div id="indicator" class="htmx-indicator">
+                    <div class="spinner-border text-blue-500" role="status">
+                        <span class="sr-only">Chargement...</span>
+                    </div>
+                </div>
+                <button 
+                    type="button" 
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                    @click="open = false"
+                    hx-on="click: document.getElementById('modal-container').innerHTML = ''"
+                >
+                    Annuler
+                </button>
+                <button 
+                    type="submit" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

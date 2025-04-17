@@ -1,29 +1,19 @@
 <!-- 
-app/templates/components/objectives_column.html
-
-Rôle fonctionnel: Composant racine affichant la colonne des objectifs de la semaine
-
-Description: Affiche l'en-tête de la colonne des objectifs avec titre et boutons d'action,
-et charge dynamiquement le contenu des activités séparées en sections priorité/standard.
-Permet également d'accéder à la gestion des objectifs textuels de la semaine.
-
-Données attendues: Aucune (composant racine chargé directement dans dashboard.html)
-
-Données produites:
-- Structure HTML complète de la colonne des objectifs
-- Déclencheurs HTMX pour charger les activités dynamiquement
-
-Contraintes:
-- Doit fonctionner dans la grille de disposition du tableau de bord
-- Doit charger correctement les activités au chargement de la page
-- Doit séparer visuellement les activités prioritaires et standards
+Fichier: app/templates/components/objectives_column.html
+Rôle: Affiche la colonne "Objectifs de la semaine" avec les activités planifiées pour la semaine en cours
+Description: Ce template permet d'afficher les activités dont l'échéance est dans la semaine courante, divisées en deux sections (priorité et standard)
+Données attendues:
+    - server_date_info: Informations sur la semaine (dates de début/fin) injectées par le context processor
+    - priority_activities: Liste des activités prioritaires 
+    - standard_activities: Liste des activités standards
 -->
-
+    
 <div class="bg-white shadow rounded-lg md:w-1/3 objectives-column" x-data="{ isExpanded: true }">
+    
     <!-- En-tête de la colonne -->
     <div class="column-header flex justify-between items-center px-4 py-3 border-b border-gray-200">
         <h2 class="text-lg font-medium text-gray-800">
-            {{ get_week_column_title() }}
+            <span id="week-start-date">{{ server_date_info.display_range }}</span>
         </h2>
         
         <!-- Boutons d'action -->
@@ -36,25 +26,25 @@ Contraintes:
                 items=[
                     {
                         "label": "Ajouter une activité",
-                        "icon": "fa-plus",
+                        "icon": "fa-calendar-week",
                         "action_type": "hx-get",
                         "action_url": url_for('views.get_activity_form'),
                         "target": "#modal-container",
                         "swap": "innerHTML"
                     },
                     {
-                        "label": "Définir objectifs",
+                        "label": "Objectifs de la semaine",
                         "icon": "fa-bullseye",
                         "action_type": "hx-get",
-                        "action_url": url_for('views.get_weekly_goal_form'),
+                        "action_url": "/modals/weekly-goal",
                         "target": "#modal-container",
                         "swap": "innerHTML"
                     },
                     {
-                        "label": "Vérifier WIP limit",
-                        "icon": "fa-tachometer-alt",
+                        "label": "Vérifier la WIP Limit",
+                        "icon": "fa-gauge-high",
                         "action_type": "hx-get",
-                        "action_url": url_for('views.check_wip_limit'),
+                        "action_url": "/modals/wip-limit-check",
                         "target": "#modal-container",
                         "swap": "innerHTML"
                     },
@@ -62,10 +52,10 @@ Contraintes:
                         "label": "Archiver",
                         "icon": "fa-archive",
                         "action_type": "hx-get",
-                        "action_url": url_for('views.archive_objectives'),
+                        "action_url": "/modals/archive-objectives",
                         "target": "#modal-container",
                         "swap": "innerHTML"
-                    }
+                    },
                 ]
             %}
                 {% include "components/contextual_menu.html" %}
@@ -82,7 +72,7 @@ Contraintes:
         </div>
     </div>
     
-    <!-- Corps de la colonne -->
+    <!-- Conteneur pour les sections priorité et standard -->
     <div 
         class="column-content hide-scrollbar" 
         x-show="isExpanded"
@@ -93,16 +83,47 @@ Contraintes:
         x-transition:leave-start="opacity-100 transform translate-y-0"
         x-transition:leave-end="opacity-0 transform -translate-y-4">
         
-        <!-- Le contenu sera chargé dynamiquement via HTMX -->
-        <div 
-            id="objectives-container"
-            hx-get="{{ url_for('views.get_weekly_activities') }}" 
-            hx-trigger="load, objectivesRefresh from:body"
-            hx-swap="innerHTML">
+        <!-- Section priorité -->
+        <div class="p-3 mb-2" id="priority-section">
+            <div class="flex items-center mb-2 p-1 border-l-4 border-pink-500">
+                <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+                <h3 class="font-medium text-gray-700">Priorités</h3>
+            </div>
             
-            <!-- Indicateur de chargement (affiché pendant le chargement) -->
-            <div class="flex justify-center items-center p-8">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <!-- Liste des activités prioritaires -->
+            <div class="space-y-2 min-h-[100px]" 
+                id="priority-activities-container"
+                data-sortable-group="priority">
+                <!-- Les activités prioritaires seront injectées ici -->
+                {% if priority_activities %}
+                    {% for activity in priority_activities %}
+                        {% include "components/activity_card.html" with context %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-sm text-gray-500 italic p-2">Aucune activité prioritaire</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Section standard -->
+        <div class="p-3" id="standard-section">
+            <div class="flex items-center mb-2 p-1 border-l-4 border-blue-400">
+                <i class="fas fa-calendar-week text-blue-600 mr-2"></i>
+                <h3 class="font-medium text-gray-700">Activités</h3>
+            </div>
+            
+            <!-- Liste des activités standard -->
+            <div class="space-y-2 min-h-[100px]"
+                id="standard-activities-container"
+                data-sortable-group="standard">
+                <!-- Les activités standard seront injectées ici -->
+                {% if standard_activities %}
+                    {% for activity in standard_activities %}
+                        {% include "components/activity_card.html" with context %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-sm text-gray-500 italic p-2">Aucune activité planifiée</div>
+                {% endif %}
             </div>
         </div>
     </div>
