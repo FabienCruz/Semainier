@@ -96,7 +96,6 @@ def create_activity():
     - duration: Durée (S/M/L, par défaut: S)
     - due_date: Date d'échéance (optionnel, format YYYY-MM-DD)
     - start_time: Heure de début (optionnel, format HH:MM)
-    - is_template: Indique si l'activité est un modèle (optionnel)
     - is_priority: Indique si l'activité est prioritaire (optionnel)
     - position: Position dans l'ordre d'affichage (optionnel)
     - is_active: Statut d'activité (optionnel)
@@ -129,7 +128,14 @@ def create_activity():
             duration = DurationSize(data['duration'])
         except ValueError:
             return jsonify({'error': 'Valeur de durée invalide (doit être S, M ou L)'}), 400
-    
+        
+    # Traitement des dates vides
+    if 'due_date' in data and (data['due_date'] == '' or data['due_date'] is None):
+        data.pop('due_date')  # Utiliser la valeur par défaut définie dans le modèle
+        
+    if 'start_time' in data and (data['start_time'] == '' or data['start_time'] is None):
+        data.pop('start_time')  # Utiliser la valeur par défaut définie dans le modèle
+
     # Création de l'activité avec les valeurs obligatoires
     activity_params = {
         'title': data['title'],
@@ -138,8 +144,7 @@ def create_activity():
     }
     
     # Ajout des paramètres optionnels
-    # Correction: is_template → is_model pour respecter la convention
-    optional_params = ['sublist_id', 'due_date', 'start_time', 'is_template', 
+    optional_params = ['sublist_id', 'due_date', 'start_time',
                        'is_priority', 'position', 'is_active']
     
     for param in optional_params:
@@ -207,11 +212,17 @@ def update_activity(id):
             data['duration'] = DurationSize(data['duration'])
         except ValueError:
             return jsonify({'error': 'Valeur de durée invalide (doit être S, M ou L)'}), 400
-    
+        
+    # Traitement des dates vides
+    if 'due_date' in data and (data['due_date'] == '' or data['due_date'] is None):
+        data.pop('due_date')  # Ne pas mettre à jour ce champ
+        
+    if 'start_time' in data and (data['start_time'] == '' or data['start_time'] is None):
+        data.pop('start_time')  # Ne pas mettre à jour ce champ
+
     # Mise à jour des champs
-    # Correction: is_template → is_model pour respecter la convention
     for field in ['title', 'list_id', 'sublist_id', 'duration', 'due_date', 
-                 'start_time', 'is_template', 'is_priority', 'position', 'is_active']:
+                 'start_time', 'is_priority', 'position', 'is_active']:
         if field in data:
             setattr(activity, field, data[field])
     
@@ -331,6 +342,81 @@ def set_next_week(id):
         return jsonify({'error': 'Activité non trouvée'}), 404
     
     activity.mark_as_next_week()
+    db.session.commit()
+    
+    return jsonify(activity.to_dict()), 200
+
+@bp.route('/<int:id>/duplicate', methods=['POST'])
+def duplicate_activity(id):
+    """
+    Duplique une activité existante.
+    
+    Cette fonction crée une copie exacte de l'activité avec un nouvel ID,
+    une date d'échéance par défaut (31/12/2099) et le statut non-complété.
+    La nouvelle activité est placée juste après l'activité originale.
+    
+    Paramètres:
+    - id: Identifiant unique de l'activité à dupliquer
+    
+    Retourne:
+    - Nouvelle activité au format JSON
+    - Erreur 404 si activité source non trouvée
+    """
+    activity = db.session.get(Activity, id)
+    if not activity:
+        return jsonify({'error': 'Activité non trouvée'}), 404
+    
+    # Créer une nouvelle activité avec les mêmes attributs
+    new_activity = Activity(
+        title=activity.title,
+        list_id=activity.list_id,
+        sublist_id=activity.sublist_id,
+        duration=activity.duration,
+        due_date=activity.due_date,
+        start_time=activity.start_time,
+        is_priority=activity.is_priority,
+        position=activity.position + 1,  # Placer juste après l'original
+        is_active=True
+    )
+    
+    # Décaler les positions des activités suivantes
+    following_activities = Activity.query.filter(
+        Activity.list_id == activity.list_id,
+        Activity.sublist_id == activity.sublist_id,
+        Activity.position > activity.position
+    ).all()
+    
+    for act in following_activities:
+        act.position += 1
+    
+    db.session.add(new_activity)
+    db.session.commit()
+    
+    return jsonify(new_activity.to_dict()), 201
+
+@bp.route('/<int:id>/set-default-date', methods=['POST'])
+def set_default_date(id):
+    """
+    Réinitialise l'échéance d'une activité à la valeur par défaut (31/12/2099).
+    
+    Cette fonction réinitialise la date d'échéance de l'activité à la date par défaut
+    et l'heure de début à 23:59, ce qui la replace dans la colonne "Listes".
+    
+    Paramètres:
+    - id: Identifiant unique de l'activité
+    
+    Retourne:
+    - Activité mise à jour au format JSON
+    - Erreur 404 si activité non trouvée
+    """
+    activity = db.session.get(Activity, id)
+    if not activity:
+        return jsonify({'error': 'Activité non trouvée'}), 404
+    
+    # Réinitialiser à la date par défaut (31/12/2099)
+    from datetime import date, time
+    activity.due_date = date(2099, 12, 31)
+    activity.start_time = time(23, 59)
     db.session.commit()
     
     return jsonify(activity.to_dict()), 200

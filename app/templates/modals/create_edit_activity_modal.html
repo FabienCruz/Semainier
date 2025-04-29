@@ -13,24 +13,34 @@
     {% endif %}
     
     <!-- Titre de l'activité -->
-    <div class="mb-4">
-        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titre de l'activité</label>
+    <div class="mb-3">
+        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titre de l'activité (255 car. max)</label>
         <input type="text" 
                id="title" 
                name="title" 
                value="{% if activity is defined %}{{ activity.title }}{% endif %}"
-               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+               class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                required 
                maxlength="255">
-        <p class="mt-1 text-xs text-gray-500">Maximum 255 caractères</p>
     </div>
+ 
+    <!-- Prioritaire -->
+    <div class="mb-4 flex flex-wrap gap-4">
+        <label class="inline-flex items-center">
+            <input type="checkbox" 
+                   name="is_priority" 
+                   value="true"
+                   {% if activity is defined and activity.is_priority %}checked{% endif %}
+                   class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+            <span class="ml-1 text-sm">Priorité</span>
+   </div>
     
     <!-- Sélecteur de liste -->
-    <div class="mb-4">
+    <div class="mb-3">
         <label for="list_id" class="block text-sm font-medium text-gray-700 mb-1">Liste</label>
         <select id="list_id" 
                 name="list_id" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 required
                 hx-get="{{ url_for('views.get_sublists_for_list') }}"
                 hx-target="#sublist_id"
@@ -50,11 +60,11 @@
     </div>
     
     <!-- Sélecteur de sous-liste (chargé dynamiquement) -->
-    <div class="mb-4">
+    <div class="mb-3">
         <label for="sublist_id" class="block text-sm font-medium text-gray-700 mb-1">Sous-liste (optionnel)</label>
         <select id="sublist_id" 
                 name="sublist_id" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">Aucune sous-liste</option>
             {% if sublists %}
                 {% for sublist in sublists %}
@@ -68,7 +78,7 @@
     </div>
     
     <!-- Durée de l'activité -->
-    <div class="mb-4">
+    <div class="mb-3">
         <label class="block text-sm font-medium text-gray-700 mb-1">Durée</label>
         <div class="flex space-x-4">
             <label class="inline-flex items-center">
@@ -98,84 +108,107 @@
         </div>
     </div>
     
-    <!-- Date d'échéance -->
-    <div class="mb-4">
-        <label for="due_date" class="block text-sm font-medium text-gray-700 mb-1">Échéance</label>
-        <input type="date" 
+    <!-- Date d'échéance / champ caché -->
+    <div class="mb-3">
+       <input type="hidden" 
                id="due_date" 
                name="due_date" 
                value="{% if activity is defined and activity.due_date %}{{ activity.due_date.isoformat() }}{% endif %}"
-               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+               class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
     </div>
     
-    <!-- Boutons de raccourci pour l'échéance -->
-    <div class="mb-4 flex flex-wrap gap-2">
-        <button type="button" 
-                class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xs"
-                onclick="setCurrentWeekDueDate()">
-            <i class="fas fa-calendar-week mr-1"></i>Semaine en cours
-        </button>
-        <button type="button" 
-                class="px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-400 text-xs"
-                onclick="setNextWeekDueDate()">
-            <i class="fas fa-calendar-alt mr-1"></i>Semaine prochaine
-        </button>
-    </div>
+
+    <!-- Section échéance - Grid 2x2 -->
     
-    <!-- Options supplémentaires -->
-    <div class="mb-6 flex flex-wrap gap-4">
-        <label class="inline-flex items-center">
-            <input type="checkbox" 
-                   name="is_priority" 
-                   value="true"
-                   {% if activity is defined and activity.is_priority %}checked{% endif %}
-                   class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
-            <span class="ml-1 text-sm">Priorité</span>
-        </label>
-        <label class="inline-flex items-center">
-            <input type="checkbox" 
-                   name="is_template" 
-                   value="true"
-                   {% if activity is defined and activity.is_template %}checked{% endif %}
-                   class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
-            <span class="ml-1 text-sm">Modèle</span>
-        </label>
-    </div>
-    
-    <!-- Message d'erreur (initialement caché) -->
-    <div id="error-message" class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-md hidden">
-        Une erreur est survenue. Veuillez réessayer.
-    </div>
-    
-    <!-- Boutons d'action -->
-    <div class="flex justify-between pt-4 border-t">
-        <!-- Bouton de suppression (visible uniquement en mode édition) -->
-        {% if activity_id %}
-        <button type="button"
-                hx-delete="{{ url_for('activity.delete_activity', id=activity_id) }}"
-                hx-confirm="Êtes-vous sûr de vouloir supprimer cette activité ?"
-                hx-swap="none"
-                hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')"
-                class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-            Supprimer
-        </button>
-        {% else %}
-        <div></div> <!-- Espace vide pour maintenir l'alignement -->
-        {% endif %}
-        
-        <!-- Boutons Annuler/Enregistrer -->
-        <div class="flex space-x-2">
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Échéance</label>
+        <div class="grid grid-cols-2 gap-2">
+            <!-- Rangée 1, Colonne 1 -->
             <button type="button" 
-                    onclick="document.getElementById('modal-container').innerHTML = ''"
-                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Annuler
+                    class="flex items-center justify-center px-4 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+                    onclick="window.DateUtils.setCurrentWeekDueDate()">
+                <i class="fas fa-calendar-week mr-2"></i>Semaine en cours
             </button>
-            <button type="submit" 
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                {{ 'Enregistrer' if activity_id else 'Créer' }}
+            
+            <!-- Rangée 1, Colonne 2 -->
+            <button type="button" 
+                    class="flex items-center justify-center px-4 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-400 text-sm"
+                    onclick="window.DateUtils.setNextWeekDueDate()">
+                <i class="fas fa-calendar-alt mr-2"></i>Semaine prochaine
             </button>
+            
+            <!-- Rangée 2, Colonne 1 -->
+            {% if activity_id %}
+            <button type="button" 
+                    class="flex items-center justify-center px-4 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                    hx-post="{{ url_for('activity.set_default_date', id=activity_id) }}"
+                    hx-swap="none"
+                    hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
+                <i class="fas fa-calendar-times mr-2"></i>Sans échéance
+            </button>
+            {% else %}
+            <!-- Emplacement vide pour maintenir la grille en mode création -->
+            <div></div>
+            {% endif %}
+            
+            <!-- Rangée 2, Colonne 2 - Emplacement invisible -->
+            <div></div>
         </div>
     </div>
+    
+   <!-- Section actions - Grid 2x2 -->
+    <div class="pt-4 border-t">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Actions</label>
+        <div class="grid grid-cols-2 gap-2">
+            <!-- Rangée 1, Colonne 1 -->
+            {% if activity_id %}
+            <button type="button"
+                    hx-post="{{ url_for('activity.duplicate_activity', id=activity_id) }}"
+                    hx-swap="none"
+                    hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')"
+                    class="flex items-center justify-center px-4 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 text-sm">
+                <i class="fas fa-copy mr-2"></i>Dupliquer
+            </button>
+            {% else %}
+            <!-- Emplacement vide pour maintenir la grille en mode création -->
+            <div></div>
+            {% endif %}
+            
+            <!-- Rangée 1, Colonne 2 -->
+            {% if activity_id %}
+            <button type="button"
+                    hx-delete="{{ url_for('activity.delete_activity', id=activity_id) }}"
+                    hx-confirm="Êtes-vous sûr de vouloir supprimer cette activité ?"
+                    hx-swap="none"
+                    hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')"
+                    class="flex items-center justify-center px-4 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-sm">
+                <i class="fas fa-trash mr-2"></i>Supprimer
+            </button>
+            {% else %}
+            <!-- Emplacement vide pour maintenir la grille en mode création -->
+            <div></div>
+            {% endif %}
+            
+            <!-- Rangée 2, Colonne 1 -->
+            <button type="button" 
+                    onclick="document.getElementById('modal-container').innerHTML = ''"
+                    class="flex items-center justify-center px-4 py-1.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm">
+                <i class="fas fa-times mr-2"></i>Annuler
+            </button>
+            
+            <!-- Rangée 2, Colonne 2 -->
+            <button type="submit" 
+                    class="flex items-center justify-center px-4 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm">
+                <i class="fas fa-check mr-2"></i>{{ 'Enregistrer' if activity_id else 'Créer' }}
+            </button>
+        </div>
+
+            <!-- Message d'erreur (initialement caché) -->
+            <div id="error-message" class="mb-3 px-4 py-3 bg-red-100 text-red-700 rounded-md hidden">
+            Une erreur est survenue. Veuillez réessayer.
+            </div>
+
+    </div>  
 </form>
 </div>
 

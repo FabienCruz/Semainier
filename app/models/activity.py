@@ -9,11 +9,12 @@ Business constraints:
 - Une activité doit toujours appartenir à une liste
 - Si une sous-liste est spécifiée, elle doit appartenir à la liste parente
 - La date d'échéance par défaut est fixée au 31/12/2099
-- Les activités peuvent être marquées comme prioritaires, modèles, ou terminées
+- L'heure de début par défaut est fixée à 23:59
+- Les activités peuvent être marquées comme prioritaires ou terminées
 """
 
 from app import db
-from datetime import datetime, timezone, date, timedelta
+from datetime import datetime, timezone, date, timedelta, time
 from enum import Enum
 
 class DurationSize(Enum):
@@ -32,10 +33,9 @@ class Activity(db.Model):
     # Durée et échéance
     duration = db.Column(db.Enum(DurationSize), default=DurationSize.SMALL)
     due_date = db.Column(db.Date, default=lambda: date(2099, 12, 31))
-    start_time = db.Column(db.Time, nullable=True)  # Heure de démarrage calculée
+    start_time = db.Column(db.Time, default=lambda: time(23, 59), nullable=False)  # Heure de démarrage, par défaut 23:59
     
     # Attributs spécifiques
-    is_template = db.Column(db.Boolean, default=False)  # Si c'est un modèle
     is_priority = db.Column(db.Boolean, default=False)  # Si c'est prioritaire
     position = db.Column(db.Integer, default=0)  # Position dans la liste
     is_active = db.Column(db.Boolean, default=True)  # Gestion de l'affichage
@@ -50,8 +50,6 @@ class Activity(db.Model):
                           onupdate=lambda: datetime.now(timezone.utc))
     
     # Contrainte pour vérifier que sublist_id appartient à list_id
-    # À ajouter dans le modèle Activity
-
     @staticmethod
     def validate_sublist_belongs_to_list(list_id, sublist_id):
         """Vérifie que la sous-liste appartient bien à la liste parente."""
@@ -80,8 +78,7 @@ class Activity(db.Model):
         self.sublist_id = kwargs.get('sublist_id')
         self.duration = kwargs.get('duration', DurationSize.SMALL)
         self.due_date = kwargs.get('due_date', date(2099, 12, 31))
-        self.start_time = kwargs.get('start_time')
-        self.is_template = kwargs.get('is_template', False)
+        self.start_time = kwargs.get('start_time', time(23, 59))
         self.is_priority = kwargs.get('is_priority', False)
         self.position = kwargs.get('position', 0)
         self.is_active = kwargs.get('is_active', True)
@@ -98,7 +95,6 @@ class Activity(db.Model):
             'duration': self.duration.value,
             'due_date': self.due_date.isoformat() if self.due_date else None,
             'start_time': self.start_time.isoformat() if self.start_time else None,
-            'is_template': self.is_template,
             'is_priority': self.is_priority,
             'position': self.position,
             'is_active': self.is_active,
@@ -129,6 +125,38 @@ class Activity(db.Model):
         # Calculer le nombre de jours jusqu'au dimanche prochain
         days_until_sunday = 6 - today.weekday()
         self.due_date = today + timedelta(days=days_until_sunday + 7)
+        
+    def duplicate(self):
+        """Crée une copie exacte de l'activité avec un nouvel ID"""
+        new_activity = Activity(
+            title=self.title,
+            list_id=self.list_id,
+            sublist_id=self.sublist_id,
+            duration=self.duration,
+            due_date=date(2099, 12, 31),  # Date par défaut pour la duplication
+            start_time=time(23, 59),      # Heure par défaut pour la duplication
+            is_priority=self.is_priority,
+            position=self.position + 1,   # Positionner après l'activité originale
+            is_active=True
+        )
+        # La nouvelle activité n'est jamais complétée
+        new_activity.is_completed = False
+        new_activity.completed_at = None
+        
+        # Décaler les positions des activités suivantes
+        following_activities = Activity.query.filter(
+            Activity.list_id == self.list_id,
+            Activity.sublist_id == self.sublist_id,
+            Activity.position > self.position
+        ).all()
+        
+        for act in following_activities:
+            act.position += 1
+            
+        db.session.add(new_activity)
+        db.session.commit()
+        
+        return new_activity
     
     def get_duration_in_minutes(self, unit_time=30):
         """Calcule la durée en minutes selon la taille du bloc"""

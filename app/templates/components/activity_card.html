@@ -7,14 +7,14 @@ Description: Composant réutilisable qui affiche une activité avec tous ses ind
 et permet les interactions utilisateur.
 
 Données attendues:
-- activity: Objet Activité à afficher avec ses propriétés (title, duration, due_date, is_priority, is_template, is_completed)
+- activity: Objet Activité à afficher avec ses propriétés (title, duration, is_priority, is_completed)
 - list_color: Code couleur HEX de la liste parente (pour la bordure)
 
 Données produites:
 - Rendu HTML d'une carte d'activité avec indicateurs visuels et interactions
 
 Contraintes:
-- Affichage cohérent des indicateurs (priorité, modèle, état)
+- Affichage cohérent des indicateurs (priorité, état)
 - Interaction par double-clic pour modifier l'activité
 - Respect de la charte visuelle (couleurs, espacements)
 -->
@@ -38,7 +38,10 @@ Contraintes:
                 <input type="checkbox" 
                     class="form-checkbox h-3 w-3 text-blue-600 transition duration-150 ease-in-out"
                     {% if activity.is_completed %}checked{% endif %}
-                    disabled>
+                    hx-post="{{ url_for('activity.complete_activity', id=activity.id) if not activity.is_completed else url_for('activity.uncomplete_activity', id=activity.id) }}"
+                    hx-trigger="click"
+                    hx-swap="outerHTML"
+                    hx-target="closest .activity-card">
             </div>
             
             <!-- Titre de l'activité (barré si complétée) -->
@@ -48,51 +51,23 @@ Contraintes:
                 </div>
             </div>
 
-            <!-- Indicateurs visuels (priorité et modèle) -->
-            <div class="activity-indicators flex space-x-1 ml-1.5">
+            <!-- Indicateurs visuels (priorité) et durée -->
+            <div class="activity-indicators flex items-center space-x-1 ml-1.5">
                 {% if activity.is_priority %}
                 <span class="indicator priority" title="Prioritaire">
                     <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
                 </span>
                 {% endif %}
                 
-                {% if activity.is_template %}
-                <span class="indicator model" title="Modèle">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                </span>
-                {% endif %}
+                <!-- Affichage de la durée (S/M/L) -->
+                <div class="activity-duration ml-1">
+                    <span title="{% if activity.duration.value == 'S' %}Courte durée{% elif activity.duration.value == 'M' %}Durée moyenne{% else %}Longue durée{% endif %}" 
+                          class="text-xxs font-semibold text-gray-500 px-1 py-0.5 bg-gray-100 rounded">
+                        {{ activity.duration.value }}
+                    </span>
+                </div>
             </div>
         </div>
-
-        <!-- Pied de carte avec échéance et durée sur la même ligne -->
-        <div class="card-footer flex justify-between text-xxs text-gray-500 mt-1">
-            <!-- Date d'échéance à gauche -->
-            <div class="activity-due-date">
-                {% if activity.due_date and activity.due_date.strftime('%Y-%m-%d') != '2099-12-31' %}
-                <span id="date-{{ activity.id }}">
-                    {{ activity.due_date.strftime('%d/%m/%Y') }}
-                    <script>
-                        document.getElementById('date-{{ activity.id }}').textContent = formatDueDateShort('{{ activity.due_date.isoformat() }}');
-                    </script>
-                </span>
-                {% else %}
-                <span>-</span>
-                {% endif %}
-            </div>
-            
-            <!-- Affichage de la durée (S/M/L avec tirets) à droite -->
-            <div class="activity-duration">
-                {% if activity.duration.value == 'S' %}
-                <span title="Courte durée">- S</span>
-                {% elif activity.duration.value == 'M' %}
-                <span title="Durée moyenne">-- M</span>
-                {% elif activity.duration.value == 'L' %}
-                <span title="Longue durée">--- L</span>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
     <!-- Bordure de survol (visible uniquement au survol) -->
     <div x-show="hovered" 
          x-transition:enter="transition ease-out duration-200"
