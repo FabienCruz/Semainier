@@ -3,7 +3,7 @@ File: app/utils/settings_utils.py
 Role: Utilitaires pour la gestion des paramètres de l'application
 Description: Fournit des fonctions d'aide pour manipuler et calculer des valeurs 
              basées sur les paramètres de l'application (Settings)
-Input data: Objets Settings, valeurs de paramètres individuels
+Input data: Valeurs de paramètres individuels
 Output data: Valeurs calculées, créneaux horaires, validations
 Business constraints:
 - L'unité de temps doit être entre 5 et 60 minutes par palier de 5
@@ -11,21 +11,6 @@ Business constraints:
 """
 
 from datetime import datetime, timedelta
-from app.models.settings import Settings
-
-
-def get_settings(db_session):
-    """
-    Récupère les paramètres de l'application, crée des valeurs par défaut si nécessaire
-    
-    Args:
-        db_session: Session de base de données
-        
-    Returns:
-        Settings: Objet contenant les paramètres
-    """
-    return Settings.get_settings(db_session)
-
 
 def calculate_suggested_units_per_day(time_unit_minutes):
     """

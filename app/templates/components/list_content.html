@@ -28,9 +28,11 @@ Contraintes:
         <div class="default-activities-container mb-3">
             <div class="list-activities grid gap-2">
                 {% for activity in activities %}
-                    {% with activity=activity, list_color=list_item.color_code %}
-                        {% include 'components/activity_card.html' %}
-                    {% endwith %}
+                    <div class="activity-wrapper">
+                        {% with activity=activity, list_color=list_item.color_code %}
+                            {% include 'components/activity_card.html' %}
+                        {% endwith %}
+                    </div>
                 {% endfor %}
             </div>
         </div>
@@ -109,9 +111,11 @@ Contraintes:
                     {% if sublist.activities %}
                         <div class="grid gap-2">
                             {% for activity in sublist.activities %}
-                                {% with activity=activity, list_color=list_item.color_code %}
-                                    {% include 'components/activity_card.html' %}
-                                {% endwith %}
+                                <div class="activity-wrapper">
+                                    {% with activity=activity, list_color=list_item.color_code %}
+                                        {% include 'components/activity_card.html' %}
+                                    {% endwith %}
+                                </div>
                             {% endfor %}
                         </div>
                     {% else %}
