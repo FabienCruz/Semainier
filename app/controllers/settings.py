@@ -20,7 +20,7 @@ from app.utils.settings_utils import (
 )
 from app.utils.request_format_utils import parse_request_data
 
-settings_bp = Blueprint('settings', __name__)
+bp = Blueprint('settings', __name__)
 
 
 def get_settings_obj():
@@ -49,7 +49,7 @@ def get_settings_obj():
     return settings
 
 
-@settings_bp.route('/api/settings', methods=['GET'])
+@bp.route('/api/settings', methods=['GET'])
 def get_app_settings():
     """
     Récupère les paramètres actuels de l'application
@@ -75,7 +75,7 @@ def get_app_settings():
         }), 500
 
 
-@settings_bp.route('/api/settings', methods=['PUT', 'POST'])
+@bp.route('/api/settings', methods=['PUT', 'POST'])
 @parse_request_data
 def update_settings():
     """
@@ -141,7 +141,7 @@ def update_settings():
         }), 500
 
 
-@settings_bp.route('/api/settings/check-units-per-day', methods=['GET'])
+@bp.route('/api/settings/check-units-per-day', methods=['GET'])
 def check_units_per_day():
     """
     Calcule la suggestion d'unités par jour pour une unité de temps donnée
@@ -173,7 +173,7 @@ def check_units_per_day():
     })
 
 
-@settings_bp.route('/api/settings/time-slots', methods=['GET'])
+@bp.route('/api/settings/time-slots', methods=['GET'])
 def get_time_slots():
     """
     Récupère les créneaux horaires calculés à partir des paramètres actuels
@@ -214,7 +214,7 @@ def get_time_slots():
         }), 500
 
 
-@settings_bp.route('/settings', methods=['GET'])
+@bp.route('/settings', methods=['GET'])
 def settings_page():
     """
     Affiche la page de paramétrage

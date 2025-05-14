@@ -128,3 +128,22 @@ def get_server_date_info() -> Dict:
         'days': days,
         'is_current_week': True  # Toujours vrai pour la semaine courante
     }
+
+def get_date_status(date):
+    """
+    Détermine le statut d'une date par rapport à aujourd'hui
+    
+    Args:
+        date: Date à vérifier
+        
+    Returns:
+        str: 'past', 'today' ou 'future'
+    """
+    today = datetime.now().date()
+    
+    if date < today:
+        return 'past'
+    elif date > today:
+        return 'future'
+    else:
+        return 'today'

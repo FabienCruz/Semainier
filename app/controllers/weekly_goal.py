@@ -17,9 +17,9 @@ from app.utils.date_utils import get_server_date_info
 from app.utils.request_format_utils import parse_request_data
 
 # Création du blueprint
-weekly_goal_bp = Blueprint('weekly_goal', __name__, url_prefix='/api/planning')
+bp = Blueprint('weekly_goal', __name__, url_prefix='/api/planning')
 
-@weekly_goal_bp.route('/weekly-goal', methods=['GET'])
+@bp.route('/weekly-goal', methods=['GET'])
 def get_weekly_goal():
     """Récupère l'objectif textuel de la semaine en cours"""
     # Récupérer les informations de la semaine courante
@@ -51,7 +51,7 @@ def get_weekly_goal():
             }
         })
 
-@weekly_goal_bp.route('/weekly-goal', methods=['POST'])
+@bp.route('/weekly-goal', methods=['POST'])
 @parse_request_data
 def create_update_weekly_goal():
     """Crée ou met à jour l'objectif de la semaine courante

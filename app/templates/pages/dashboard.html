@@ -8,8 +8,8 @@ dans une disposition responsive. Sert de container pour l'affichage unifié des 
 
 Relations avec les autres fichiers :
 - Étend base.html qui définit la structure globale (header, footer, scripts, etc.)
-- Inclut les composants columns (list_column.html, objectives_column.html) qui sont des éléments réutilisables
-- Ces composants chargent dynamiquement leur contenu via HTMX (lists.html, weekly_activities_content.html)
+- Inclut les composants columns (list_column.html, objectives_column.html, timetable_column.html)
+- Ces composants chargent dynamiquement leur contenu via HTMX
 - Les composants utilisent à leur tour d'autres sous-composants (activity_card.html, contextual_menu.html)
 
 Données attendues: Aucune (la page est un container vide qui charge son contenu dynamiquement)
@@ -27,7 +27,7 @@ Contraintes:
 
 {% block content %}
 <!-- Contenu principal -->
-<div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+<div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 p-4">
     <!-- Colonne 1: Listes -->
     {% include "components/list_column.html" %}
     
@@ -35,54 +35,6 @@ Contraintes:
     {% include "components/objectives_column.html" %}
     
     <!-- Colonne 3: Emploi du temps -->
-    <div class="bg-white rounded-lg shadow-md md:w-1/3" x-data="{ active: true }">
-        <!-- En-tête de la colonne -->
-        <div class="column-header p-3 border-b flex justify-between items-center">
-            <h2 class="text-lg font-semibold text-gray-800 flex items-center justify-center w-full">
-                <button class="p-1 text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="mx-2">Mer 12/03</span>
-                <button class="p-1 text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </h2>
-            <div class="flex items-center">
-                <!-- Menu d'actions avec dropdown -->
-                <div x-data="{ open: false }" class="relative">
-                    <button 
-                        @click="open = !open" 
-                        class="text-gray-500 hover:text-gray-700 text-sm p-1 rounded-full hover:bg-gray-200"
-                        title="Actions">
-                        <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    <!-- Dropdown menu -->
-                    <div 
-                        x-show="open" 
-                        @click.away="open = false" 
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
-                        x-transition>
-                        <div class="py-1">
-                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="open = false; $dispatch('htmx:trigger', {trigger: 'createActivityModal'})">
-                                <i class="fas fa-calendar-week w-5 text-blue-500"></i>
-                                <span>Ajouter une activité</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <button class="md:hidden ml-2 p-1 text-gray-500" @click="active = !active">
-                    <i class="fas" :class="active ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Contenu de la colonne -->
-        <div class="column-content hide-scrollbar" x-show="active">
-            <div class="text-center py-6 text-gray-500">
-                <i class="fas fa-calendar-day text-4xl mb-2"></i>
-                <p>Emploi du temps en cours de développement</p>
-            </div>
-        </div>
-    </div>
+    {% include "components/timetable_column.html" %}
 </div>
 {% endblock %}

@@ -28,11 +28,11 @@ from app.models.sublist import Sublist
 from app.models.activity import Activity
 from app.models.settings import Settings
 
-views = Blueprint('views', __name__)
+bp = Blueprint('views', __name__)
 
 # ===== Routes Principales =====
 
-@views.route('/')
+@bp.route('/')
 def dashboard():
     """
     Affiche le tableau de bord principal avec les trois colonnes.
@@ -47,7 +47,7 @@ def dashboard():
     """
     return render_template('pages/dashboard.html')
 
-@views.route('/settings')
+@bp.route('/settings')
 def settings():
     """
     Affiche la page des paramètres de l'application.
@@ -67,7 +67,7 @@ def settings():
 
 # ===== Routes pour les composants =====
 
-@views.route('/lists')
+@bp.route('/lists')
 def get_lists():
     """
     Récupère et affiche toutes les listes avec leurs sous-listes et activités.
@@ -80,7 +80,7 @@ def get_lists():
     lists = List.query.all()
     return render_template('components/lists.html', lists=lists)
 
-@views.route('/list/<int:list_id>')
+@bp.route('/list/<int:list_id>')
 def get_list(list_id):
     """
     Récupère et affiche une liste spécifique avec ses sous-listes et activités.
@@ -106,7 +106,7 @@ def get_list(list_id):
         activities=activities
     )
 
-@views.route('/sublist/<int:sublist_id>')
+@bp.route('/sublist/<int:sublist_id>')
 def get_sublist(sublist_id):
     """
     Récupère et affiche une sous-liste spécifique avec ses activités.
@@ -132,7 +132,7 @@ def get_sublist(sublist_id):
 
 # ===== Routes pour les modales de Liste =====
 
-@views.route('/modals/create-list')
+@bp.route('/modals/create-list')
 def get_list_form():
     """
     Affiche le formulaire de création de liste.
@@ -145,7 +145,7 @@ def get_list_form():
     return render_template('modals/create_edit_list_modal.html', 
                           title="Créer une liste")
 
-@views.route('/modals/edit-list/<int:list_id>')
+@bp.route('/modals/edit-list/<int:list_id>')
 def edit_list_form(list_id):
     """
     Affiche le formulaire d'édition de liste.
@@ -168,8 +168,8 @@ def edit_list_form(list_id):
 
 # ===== Routes pour les modales de Sous-liste =====
 
-@views.route('/modals/create-sublist', defaults={'list_id': None})
-@views.route('/modals/create-sublist/<int:list_id>')
+@bp.route('/modals/create-sublist', defaults={'list_id': None})
+@bp.route('/modals/create-sublist/<int:list_id>')
 def get_sublist_form(list_id):
     """
     Affiche le formulaire de création de sous-liste.
@@ -190,7 +190,7 @@ def get_sublist_form(list_id):
                           lists=lists,
                           selected_list_id=list_id)
 
-@views.route('/modals/edit-sublist/<int:sublist_id>')
+@bp.route('/modals/edit-sublist/<int:sublist_id>')
 def edit_sublist_form(sublist_id):
     """
     Affiche le formulaire d'édition de sous-liste.
@@ -213,7 +213,7 @@ def edit_sublist_form(sublist_id):
                           lists=lists,
                           sublist_id=sublist_id)
 
-@views.route('/api/sublists-for-list')
+@bp.route('/api/sublists-for-list')
 def get_sublists_for_list():
     """
     Endpoint AJAX pour récupérer les sous-listes d'une liste spécifique.
@@ -247,8 +247,8 @@ def get_sublists_for_list():
 
 # ===== Routes pour les modales d'Activité =====
 
-@views.route('/modals/create-activity', defaults={'list_id': None})
-@views.route('/modals/create-activity/<int:list_id>')
+@bp.route('/modals/create-activity', defaults={'list_id': None})
+@bp.route('/modals/create-activity/<int:list_id>')
 def get_activity_form(list_id):
     """
     Affiche le formulaire de création d'activité.
@@ -275,7 +275,7 @@ def get_activity_form(list_id):
                           sublists=sublists,
                           selected_list_id=list_id)
 
-@views.route('/modals/edit-activity/<int:activity_id>')
+@bp.route('/modals/edit-activity/<int:activity_id>')
 def edit_activity_form(activity_id):
     """
     Affiche le formulaire d'édition d'activité.
@@ -303,7 +303,7 @@ def edit_activity_form(activity_id):
 
 # ===== Routes pour les modales de confirmation =====
 
-@views.route('/modals/confirm-delete/<string:type>/<int:id>')
+@bp.route('/modals/confirm-delete/<string:type>/<int:id>')
 def get_delete_confirmation(type, id):
     """
     Affiche la confirmation de suppression pour une liste ou sous-liste.
@@ -340,7 +340,7 @@ def get_delete_confirmation(type, id):
 
 # ===== Routes pour les modales d'objectif de la semaine =====
 
-@views.route('/modals/weekly-goal')
+@bp.route('/modals/weekly-goal')
 def weekly_goal_form():
     """
     Affiche le formulaire d'édition des objectifs textuels de la semaine.

@@ -1,0 +1,128 @@
+<!-- 
+app/templates/components/timetable_column.html
+
+Rôle fonctionnel: Composant racine affichant la colonne emploi du temps
+
+Description: Affiche l'en-tête de la colonne emploi du temps avec date, navigation entre jours
+et boutons d'action, et contient la grille des créneaux horaires.
+
+Données attendues: 
+- server_date_info: Informations sur les dates de la semaine
+- time_slots: Liste des créneaux horaires générés
+- settings: Paramètres de l'application
+
+Données produites:
+- Structure HTML complète de la colonne emploi du temps
+- Déclencheurs HTMX pour la navigation entre jours
+
+Contraintes:
+- Les jours passés sont en lecture seule (visuel grisé)
+- Le jour courant et les jours futurs peuvent être modifiés
+- La navigation est limitée aux jours de la semaine courante
+-->
+
+<div class="bg-white shadow rounded-lg md:w-1/3 timetable-column" x-data="{ isExpanded: true }">
+    <!-- En-tête de la colonne -->
+    <div class="column-header flex justify-between items-center px-4 py-3 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-800" id="timetable-date">
+            {% for day in server_date_info.days %}
+                {% if day.is_today %}
+                    {{ day.display_date }}
+                    {% set current_day = day %}
+                {% endif %}
+            {% endfor %}
+        </h2>
+        
+        <!-- Navigation entre jours -->
+        <div class="flex justify-center space-x-2">
+            <button 
+                id="prev-day-btn"
+                class="nav-btn p-1 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-200 focus:outline-none"
+                {% if server_date_info.days[0].is_today %}disabled{% endif %}
+                hx-get="{{ url_for('views.get_timetable_day', direction='prev') }}?current_date={{ current_day.date if current_day is defined else server_date_info.current_date }}"
+                hx-target=".timetable-column"
+                hx-swap="outerHTML"
+                title="Jour précédent">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button 
+                id="next-day-btn"
+                class="nav-btn p-1 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-200 focus:outline-none"
+                {% if server_date_info.days[6].is_today %}disabled{% endif %}
+                hx-get="{{ url_for('views.get_timetable_day', direction='next') }}?current_date={{ current_day.date if current_day is defined else server_date_info.current_date }}"
+                hx-target=".timetable-column"
+                hx-swap="outerHTML"
+                title="Jour suivant">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <!-- Boutons d'action -->
+        <div class="flex space-x-1">
+            <!-- Menu contextuel -->
+            {% with 
+                menu_id="timetable-menu",
+                button_icon="fa-ellipsis-v",
+                button_title="Menu emploi du temps",
+                items=[
+                    {
+                        "label": "Ajouter une activité",
+                        "icon": "fa-plus",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.get_activity_form', column='timetable', date=current_day.date if current_day is defined else server_date_info.current_date),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    },
+                    {
+                        "label": "Archiver",
+                        "icon": "fa-archive",
+                        "action_type": "hx-get",
+                        "action_url": url_for('views.get_archive_timetable_form', date=current_day.date if current_day is defined else server_date_info.current_date),
+                        "target": "#modal-container",
+                        "swap": "innerHTML"
+                    }
+                ]
+            %}
+                {% include "components/contextual_menu.html" %}
+            {% endwith %}
+            
+            <!-- Bouton d'expansion/réduction sur mobile -->
+            <button 
+                class="md:hidden p-1.5 text-gray-500 hover:text-gray-700"
+                @click="isExpanded = !isExpanded" 
+                :aria-expanded="isExpanded"
+                aria-label="Développer/Réduire la colonne">
+                <i class="fas" :class="isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Corps de la colonne -->
+    <div 
+        class="column-content hide-scroll[48;38;115;1520;2300tbar {% for day in server_date_info.days %}{% if day.is_today %}{{ 'past-day' if day.is_past else 'current-day' if day.is_today else 'future-day' }}{% endif %}{% endfor %}" 
+        x-show="isExpanded"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 transform -translate-y-4"
+        x-transition:enter-end="opacity-100 transform translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 transform translate-y-0"
+        x-transition:leave-end="opacity-0 transform -translate-y-4">
+        
+        <!-- Grille de créneaux horaires -->
+        <div class="time-grid">
+            {% if time_slots %}
+                {% for slot in time_slots %}
+                <div class="time-slot p-2 border-b border-gray-200" data-time="{{ slot }}">
+                    <div class="time-label text-xs font-medium text-gray-500">{{ slot }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Message temporaire si les créneaux ne sont pas encore disponibles -->
+                <div class="text-center py-6 text-gray-500">
+                    <i class="fas fa-calendar-day text-4xl mb-2"></i>
+                    <p>Emploi du temps en cours de développement</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
