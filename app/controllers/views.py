@@ -22,7 +22,7 @@ Contraintes:
 - La navigation entre modales et composants est gérée côté client
 """
 
-from flask import Blueprint, render_template, url_for, abort, request
+from flask import Blueprint, render_template, url_for, abort, request, redirect
 from app.models.list import List
 from app.models.sublist import Sublist
 from app.models.activity import Activity
@@ -366,3 +366,26 @@ def weekly_goal_form():
                           title="Objectifs de la semaine",
                           week_display=week_info['display_range'],
                           content=weekly_goal.content if weekly_goal else "")
+
+
+# ====== Routes pour l'emploi du temps
+
+@bp.route('/timetable-day/<string:direction>')
+def get_timetable_day(direction):
+    """
+    Route pour la navigation entre les jours dans la colonne "Emploi du temps".
+    Délègue le traitement au contrôleur timetable.
+    
+    Args:
+        direction: Direction de navigation ('prev' ou 'next')
+    
+    Returns:
+        Réponse HTML de la colonne "Emploi du temps" pour le jour cible
+    """
+    # Récupérer tous les paramètres de requête
+    query_params = request.args.to_dict()
+    
+    # Rediriger vers la fonction du contrôleur avec les mêmes paramètres
+    return redirect(url_for('timetable.navigate_timetable', 
+                           direction=direction, 
+                           **query_params))
