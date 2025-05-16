@@ -1,21 +1,21 @@
 """
 File: app/__init__.py
 Role: Point d'entrée de l'application Flask
-Description: Configure l'application Flask, initialise la base de données et enregistre les blueprints
+Description: Configure l'application Flask, initialise la base de données et enregistre les routes centralisées
 Input data: N/A
 Output data: Instance d'application Flask configurée
 Business constraints:
 - Utilise SQLite comme base de données stockée dans le dossier instance
 - Initialise SQLAlchemy et Flask-Migrate pour la gestion de la base de données
 - Importe tous les modèles pour que Flask-Migrate puisse détecter les changements
-- Enregistre tous les blueprints (contrôleurs) pour définir les routes de l'application
+- Utilise un routeur central 
 """
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 
-# Initialisation des extensions
+# Initialisation de la base de données
 db = SQLAlchemy()
 migrate = Migrate()
 
@@ -43,33 +43,18 @@ def create_app():
     # Import des modèles pour que Flask-Migrate les détecte
     from app.models import List, Sublist, Activity, Settings, WeeklyGoal
     
-    # Enregistrement des blueprints (contrôleurs)
-    from app.controllers.views  import bp as views_bp
-    from app.controllers.list import bp as list_bp
-    from app.controllers.sublist import bp as sublist_bp
-    from app.controllers.activity import bp as activity_bp
-    from app.controllers.settings import bp as settings_bp
-    from app.controllers.weekly_goal import bp as weekly_goal_bp
-    from app.controllers.timetable import bp as timetable_bp
-
-    app.register_blueprint(views_bp)
-    app.register_blueprint(list_bp)
-    app.register_blueprint(sublist_bp)
-    app.register_blueprint(activity_bp)
-    app.register_blueprint(settings_bp)
-    app.register_blueprint(weekly_goal_bp)
-    app.register_blueprint(timetable_bp)
+    # Enregistrement des routes centralisées via le routeur
+    from app.controllers.router import register_routes
+    register_routes(app)
   
-    # Filtre pour formater les heures dans les templates
-
+    # Enregistrement des filtres personnalisés
+    from app.utils.date_utils import format_time
+    
     @app.template_filter('format_time')
     def format_time_filter(time_str):
-        # Simplement retourner l'heure telle quelle pour l'instant
-        return time_str
-
+        return format_time(time_str)
 
     # Initialisation des paramètres par défaut au démarrage de l'application
-    
     with app.app_context():
         # Vérifier si des paramètres existent déjà
         settings = db.session.query(Settings).first()
@@ -84,7 +69,6 @@ def create_app():
             db.session.add(settings)
             db.session.commit()
             app.logger.info("Paramètres par défaut créés avec succès")
-
 
     @app.context_processor
     def inject_date_info():

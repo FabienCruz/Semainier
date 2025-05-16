@@ -50,3 +50,8 @@ class Sublist(db.Model):
             'created_at': self.created_at,
             'updated_at': self.updated_at
         }
+    
+    @staticmethod
+    def get_by_list_id(list_id):
+        return Sublist.query.filter_by(list_id=list_id).all()
+

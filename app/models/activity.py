@@ -167,3 +167,7 @@ class Activity(db.Model):
         elif self.duration == DurationSize.LARGE:
             return unit_time * 6
         return 0
+    
+    @staticmethod
+    def get_by_list_id(list_id):
+        return Activity.query.filter_by(list_id=list_id).all()
