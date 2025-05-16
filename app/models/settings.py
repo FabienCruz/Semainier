@@ -35,31 +35,6 @@ class Settings(db.Model):
     def __repr__(self):
         return f"<Settings id={self.id}, time_unit={self.time_unit_minutes}min>"
     
-    @staticmethod
-    def get_settings(db_session):
-        """
-        Récupère les paramètres de l'application ou crée des valeurs par défaut
-        
-        Args:
-            db_session: Session SQLAlchemy en cours
-            
-        Returns:
-            Settings: Instance des paramètres
-        """
-        settings = db_session.query(Settings).first()
-        
-        if not settings:
-            settings = Settings(
-                time_unit_minutes=30,
-                day_start_time="09:00",
-                time_units_per_day=20,
-                wip_limit=100
-            )
-            db_session.add(settings)
-            db_session.commit()
-            
-        return settings
-    
     def to_dict(self):
         """
         Convertit l'objet Settings en dictionnaire
@@ -111,3 +86,76 @@ class Settings(db.Model):
             errors['wip_limit'] = f"La WIP limit ne peut pas dépasser {max_wip_limit} (time_units_per_day × 7)"
         
         return len(errors) == 0, errors
+    
+    # Méthodes d'accès aux données
+    @classmethod
+    def get_settings(cls):
+        """
+        Récupère les paramètres de l'application ou crée des valeurs par défaut
+            
+        Returns:
+            Settings: Instance des paramètres, ou None en cas d'erreur
+        """
+        try:
+            settings = cls.query.first()
+            
+            if not settings:
+                settings = cls(
+                    time_unit_minutes=30,
+                    day_start_time="09:00",
+                    time_units_per_day=20,
+                    wip_limit=100
+                )
+                db.session.add(settings)
+                db.session.commit()
+                
+            return settings
+        except Exception as e:
+            db.session.rollback()
+            return None
+    
+    @classmethod
+    def get_by_id(cls, id):
+        """
+        Récupère les paramètres par leur ID
+        
+        Args:
+            id (int): ID des paramètres
+            
+        Returns:
+            Settings: Instance des paramètres, ou None si non trouvé
+        """
+        return db.session.get(cls, id)
+    
+@classmethod
+def update(cls, data):
+    """
+    Met à jour les paramètres de l'application
+    
+    Args:
+        data (dict): Dictionnaire des champs à mettre à jour
+    
+    Returns:
+        Settings: Instance mise à jour, ou None en cas d'erreur
+    """
+    try:
+        settings = cls.get_settings()
+        if not settings:
+            return None
+        
+        # Mise à jour des champs
+        for key, value in data.items():
+            if hasattr(settings, key):
+                setattr(settings, key, value)
+        
+        # Valider les paramètres
+        is_valid, _ = settings.validate()
+        if not is_valid:
+            db.session.rollback()
+            return None
+        
+        db.session.commit()
+        return settings
+    except Exception as e:
+        db.session.rollback()
+        return None

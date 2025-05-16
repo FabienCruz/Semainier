@@ -168,6 +168,157 @@ class Activity(db.Model):
             return unit_time * 6
         return 0
     
-    @staticmethod
-    def get_by_list_id(list_id):
-        return Activity.query.filter_by(list_id=list_id).all()
+    # Méthodes d'accès aux données enrichies
+    @classmethod
+    def get_by_id(cls, id):
+        """Récupère une activité par son ID."""
+        return db.session.get(cls, id)
+    
+    @classmethod
+    def get_by_list_id(cls, list_id):
+        """Récupère toutes les activités d'une liste."""
+        return cls.query.filter_by(list_id=list_id).all()
+    
+    @classmethod
+    def get_by_sublist_id(cls, sublist_id):
+        """Récupère toutes les activités d'une sous-liste."""
+        return cls.query.filter_by(sublist_id=sublist_id).all()
+    
+    @classmethod
+    def get_filtered(cls, list_id=None, sublist_id=None, is_completed=None):
+        """
+        Récupère les activités avec des filtres.
+        
+        Args:
+            list_id (int, optional): Filtre par liste
+            sublist_id (int, optional): Filtre par sous-liste
+            is_completed (bool, optional): Filtre par statut de complétion
+        
+        Returns:
+            list: Liste des activités correspondant aux critères
+        """
+        query = cls.query
+        
+        if list_id is not None:
+            query = query.filter_by(list_id=list_id)
+        if sublist_id is not None:
+            query = query.filter_by(sublist_id=sublist_id)
+        if is_completed is not None:
+            query = query.filter_by(is_completed=is_completed)
+        
+        return query.order_by(cls.due_date, cls.position).all()
+    
+    @classmethod
+    def create(cls, data):
+        """
+        Crée une nouvelle activité.
+        
+        Args:
+            data (dict): Dictionnaire contenant les données de l'activité
+        
+        Returns:
+            Activity: L'activité créée, ou None en cas d'erreur
+        """
+        try:
+            # Création avec les paramètres obligatoires
+            activity = cls(
+                title=data['title'],
+                list_id=data['list_id']
+            )
+            
+            # Paramètres optionnels
+            if 'sublist_id' in data:
+                activity.sublist_id = data['sublist_id']
+            
+            if 'duration' in data:
+                activity.duration = data['duration']
+            
+            if 'due_date' in data:
+                activity.due_date = data['due_date']
+            
+            if 'start_time' in data:
+                activity.start_time = data['start_time']
+            
+            if 'is_priority' in data:
+                activity.is_priority = data['is_priority']
+            
+            if 'position' in data:
+                activity.position = data['position']
+            
+            if 'is_active' in data:
+                activity.is_active = data['is_active']
+            
+            # Sauvegarde avec validation
+            return activity.save()
+        except Exception as e:
+            db.session.rollback()
+            return None
+    
+    @classmethod
+    def update(cls, id, data):
+        """
+        Met à jour une activité existante.
+        
+        Args:
+            id (int): ID de l'activité
+            data (dict): Dictionnaire des champs à mettre à jour
+        
+        Returns:
+            Activity: L'activité mise à jour, ou None en cas d'erreur
+        """
+        try:
+            activity = cls.get_by_id(id)
+            if not activity:
+                return None
+            
+            # Mise à jour des champs
+            for field in ['title', 'list_id', 'sublist_id', 'duration', 'due_date', 
+                         'start_time', 'is_priority', 'position', 'is_active']:
+                if field in data:
+                    setattr(activity, field, data[field])
+            
+            # Sauvegarde avec validation
+            return activity.save()
+        except Exception as e:
+            db.session.rollback()
+            return None
+    
+    @classmethod
+    def delete(cls, id):
+        """
+        Supprime une activité.
+        
+        Args:
+            id (int): ID de l'activité à supprimer
+        
+        Returns:
+            bool: True si succès, False sinon
+        """
+        try:
+            activity = cls.get_by_id(id)
+            if not activity:
+                return False
+            
+            db.session.delete(activity)
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            return False
+    
+    @classmethod
+    def duplicate_activity(cls, id):
+        """
+        Duplique une activité existante.
+        
+        Args:
+            id (int): ID de l'activité à dupliquer
+        
+        Returns:
+            Activity: La nouvelle activité créée, ou None en cas d'erreur
+        """
+        activity = cls.get_by_id(id)
+        if not activity:
+            return None
+        
+        return activity.duplicate()
