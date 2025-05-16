@@ -8,21 +8,21 @@ incluant les 3 colonnes principales, les composants de liste/sous-liste/activit�
 et les modales de création/édition/suppression. Ces routes sont principalement appelées
 via HTMX pour le rechargement partiel des éléments d'interface.
 
-Données attendues:
-- Paramètres d'URL (identifiants de liste, sous-liste, activité)
-- Paramètres de requête pour les filtres et sélections
-
-Données produites:
-- Fragments HTML rendus par Jinja2 avec les modèles correspondants
-- Structure complète (dashboard) ou partielle (composants) selon les appels
-
 Contraintes:
 - Les templates associés doivent être structurés pour un affichage correct
 - Les composants doivent fonctionner indépendamment pour les mises à jour HTMX
 - La navigation entre modales et composants est gérée côté client
+- Ce contrôleur dépend des autres contrôleurs (list, sublist, activity, etc.) pour
+  la logique métier et l'accès aux données, conformément au pattern MVC
 """
 
 from flask import Blueprint, render_template, url_for, abort, request, redirect
+
+# Import des contrôleurs
+from app.controllers.list import get_lists as controller_get_lists
+
+
+# modèles importés (à corriger)
 from app.models.list import List
 from app.models.sublist import Sublist
 from app.models.activity import Activity
@@ -77,7 +77,7 @@ def get_lists():
     Retourne:
     - Rendu HTML du composant de liste complet
     """
-    lists = List.query.all()
+    lists = controller_get_lists(format_json=False)
     return render_template('components/lists.html', lists=lists)
 
 @bp.route('/list/<int:list_id>')

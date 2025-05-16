@@ -27,25 +27,33 @@ Contraintes:
 from flask import Blueprint, request, jsonify
 from app import db
 from app.models import List
+from app.models.sublist import Sublist
+from app.models.activity import Activity
 from app.utils.request_format_utils import parse_request_data
 
 # Création du Blueprint pour les routes de liste
 bp = Blueprint('list', __name__, url_prefix='/api/lists')
 
 @bp.route('/', methods=['GET'])
-def get_lists():
+def get_lists(format_json=True):
     """
     Récupérer toutes les listes.
     
-    Cette route retourne l'ensemble des listes disponibles dans l'application,
-    triées par ordre alphabétique.
+    Cette fonction peut être utilisée à la fois par l'API et par les vues.
+    
+    Paramètres:
+    - format_json: Si True, renvoie les listes au format JSON. Sinon, renvoie les objets List directement. Par défaut True pour l'API.
     
     Retourne:
-    - Liste des objets list au format JSON
-    - Code 200 OK
+    - API: Liste des objets list au format JSON + Code 200 OK
+    - Vue: Liste des objets List (sans formatage JSON)
     """
     lists = List.query.order_by(List.name).all()
-    return jsonify([list_obj.to_dict() for list_obj in lists]), 200
+    
+    if format_json:
+        return jsonify([list_obj.to_dict() for list_obj in lists]), 200
+    else:
+        return lists
 
 @bp.route('/<int:id>', methods=['GET'])
 def get_list(id):
