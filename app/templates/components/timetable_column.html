@@ -43,7 +43,7 @@ Contraintes:
                 id="prev-day-btn"
                 class="nav-btn p-1 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-200 focus:outline-none"
                 {% if current_day_info and current_day_info.is_first_day %}disabled{% endif %}
-                hx-get="{{ url_for('views.get_timetable_day', direction='prev') }}?current_date={{ current_day_info.date if current_day_info else server_date_info.current_date }}"
+                hx-get="{{ url_for('show_timetable', direction='prev') }}?current_date={{ current_day_info.date if current_day_info else server_date_info.current_date }}"
                 hx-target=".timetable-column"
                 hx-swap="outerHTML"
                 title="Jour précédent">
@@ -53,7 +53,7 @@ Contraintes:
                 id="next-day-btn"
                 class="nav-btn p-1 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-200 focus:outline-none"
                 {% if current_day_info and current_day_info.is_last_day %}disabled{% endif %}
-                hx-get="{{ url_for('views.get_timetable_day', direction='next') }}?current_date={{ current_day_info.date if current_day_info else server_date_info.current_date }}"
+                hx-get="{{ url_for('show_timetable', direction='next') }}?current_date={{ current_day_info.date if current_day_info else server_date_info.current_date }}"
                 hx-target=".timetable-column"
                 hx-swap="outerHTML"
                 title="Jour suivant">
@@ -73,7 +73,7 @@ Contraintes:
                         "label": "Ajouter une activité",
                         "icon": "fa-calendar-week",
                         "action_type": "hx-get",
-                        "action_url": url_for('views.get_activity_form'),
+                        "action_url": url_for('shoow_new_activity'),
                         "target": "#modal-container",
                         "swap": "innerHTML"
                     },

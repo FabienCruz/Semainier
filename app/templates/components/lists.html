@@ -58,7 +58,7 @@ Contraintes:
                                         "label": "Ajouter une activité",
                                         "icon": "fa-calendar-week",
                                         "action_type": "hx-get",
-                                        "action_url": url_for('views.get_activity_form', list_id=list_item.id),
+                                        "action_url": url_for('show_new_activity', list_id=list_item.id),
                                         "target": "#modal-container",
                                         "swap": "innerHTML"
                                     },
@@ -66,7 +66,7 @@ Contraintes:
                                         "label": "Ajouter une sous-liste",
                                         "icon": "fa-sitemap",
                                         "action_type": "hx-get",
-                                        "action_url": url_for('views.get_sublist_form', list_id=list_item.id),
+                                        "action_url": url_for('show_new_sublist', list_id=list_item.id),
                                         "target": "#modal-container",
                                         "swap": "innerHTML"
                                     },
@@ -74,7 +74,7 @@ Contraintes:
                                         "label": "Modifier",
                                         "icon": "fa-edit",
                                         "action_type": "hx-get",
-                                        "action_url": url_for('views.edit_list_form', list_id=list_item.id),
+                                        "action_url": url_for('edit_list', list_id=list_item.id),
                                         "target": "#modal-container",
                                         "swap": "innerHTML"
                                     },
@@ -82,7 +82,7 @@ Contraintes:
                                         "label": "Supprimer",
                                         "icon": "fa-trash-alt",
                                         "action_type": "hx-get",
-                                        "action_url": url_for('views.get_delete_confirmation', type='list', id=list_item.id),
+                                        "action_url": url_for('erase_list', type='list', id=list_item.id),
                                         "target": "#modal-container",
                                         "swap": "innerHTML",
                                         "classes": "text-red-600 hover:bg-gray-100"
@@ -108,7 +108,7 @@ Contraintes:
                     
                     <!-- Chargement du contenu de la liste via HTMX -->
                     <div
-                        hx-get="{{ url_for('views.get_list', list_id=list_item.id) }}"
+                        hx-get="{{ url_for('show_list', list_id=list_item.id) }}"
                         hx-trigger="load once, listContentRefresh-{{ list_item.id }} from:body"
                         hx-swap="innerHTML">
                         
@@ -133,7 +133,7 @@ Contraintes:
         <p class="text-gray-600 mb-3">Commencez par créer une liste pour organiser vos activités.</p>
         <a 
             href="#"
-            hx-get="{{ url_for('views.get_list_form') }}"
+            hx-get="{{ url_for('show_new_list') }}"
             hx-target="#modal-container"
             hx-swap="innerHTML"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">

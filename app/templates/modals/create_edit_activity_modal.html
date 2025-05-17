@@ -3,7 +3,7 @@
 
 {% block modal_content %}
 <form id="activity-form" 
-      hx-post="{{ url_for('activity.create_activity') if not activity_id else url_for('activity.update_activity', id=activity_id) }}"
+      hx-post="{{ url_for('new_activity') if not activity_id else url_for('edit_activity', activity_id=activity_id) }}"
       hx-swap="none"
       hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
     
@@ -42,7 +42,7 @@
                 name="list_id" 
                 class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 required
-                hx-get="{{ url_for('views.get_sublists_for_list') }}"
+                hx-get="{{ url_for('show_sublists_for_list') }}"
                 hx-target="#sublist_id"
                 hx-trigger="change"
                 hx-include="[name='list_id']">
@@ -141,7 +141,7 @@
             {% if activity_id %}
             <button type="button" 
                     class="flex items-center justify-center px-4 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
-                    hx-post="{{ url_for('activity.set_default_date', id=activity_id) }}"
+                    hx-post="{{ url_for('edit_activity_default_date', activity_id=activity_id) }}"
                     hx-swap="none"
                     hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
                 <i class="fas fa-calendar-times mr-2"></i>Sans échéance
@@ -163,7 +163,7 @@
             <!-- Rangée 1, Colonne 1 -->
             {% if activity_id %}
             <button type="button"
-                    hx-post="{{ url_for('activity.duplicate_activity', id=activity_id) }}"
+                    hx-post="{{ url_for('duplicate_activity', activity_id=activity_id) }}"
                     hx-swap="none"
                     hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')"
                     class="flex items-center justify-center px-4 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 text-sm">
@@ -177,7 +177,7 @@
             <!-- Rangée 1, Colonne 2 -->
             {% if activity_id %}
             <button type="button"
-                    hx-delete="{{ url_for('activity.delete_activity', id=activity_id) }}"
+                    hx-delete="{{ url_for('erase_activity', activity_id=activity_id) }}"
                     hx-confirm="Êtes-vous sûr de vouloir supprimer cette activité ?"
                     hx-swap="none"
                     hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')"

@@ -21,7 +21,7 @@ Business constraints:
 
         <!-- Formulaire d'édition -->
         <form 
-            hx-post="/api/planning/weekly-goal"
+            hx-post="{{ url_for('new_weekly_goal') }}"
             hx-target="#modal-container"
             hx-swap="outerHTML"
             hx-indicator="#indicator"

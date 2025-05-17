@@ -36,7 +36,7 @@ Contraintes:
                         "label": "Ajouter une liste",
                         "icon": "fa-list",
                         "action_type": "hx-get",
-                        "action_url": url_for('views.get_list_form'),
+                        "action_url": url_for('show_new_list'),
                         "target": "#modal-container",
                         "swap": "innerHTML"
                     },
@@ -44,7 +44,7 @@ Contraintes:
                         "label": "Ajouter une sous-liste",
                         "icon": "fa-sitemap",
                         "action_type": "hx-get",
-                        "action_url": url_for('views.get_sublist_form'),
+                        "action_url": url_for('show_new_sublist'),
                         "target": "#modal-container",
                         "swap": "innerHTML"
                     },
@@ -52,7 +52,7 @@ Contraintes:
                         "label": "Ajouter une activité",
                         "icon": "fa-calendar-week",
                         "action_type": "hx-get",
-                        "action_url": url_for('views.get_activity_form'),
+                        "action_url": url_for('show_new_activity'),
                         "target": "#modal-container",
                         "swap": "innerHTML"
                     }
@@ -86,7 +86,7 @@ Contraintes:
         <!-- Le contenu sera chargé dynamiquement via HTMX -->
         <div 
             id="lists-container"
-            hx-get="{{ url_for('views.get_lists') }}" 
+            hx-get="{{ url_for('show_lists') }}" 
             hx-trigger="load, listRefresh from:body"
             hx-swap="innerHTML">
             
