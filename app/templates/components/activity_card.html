@@ -24,7 +24,7 @@ Contraintes:
      x-data="{ hovered: false }"
      @mouseenter="hovered = true"
      @mouseleave="hovered = false"
-     hx-get="{{ url_for('views.edit_activity_form', activity_id=activity.id) }}"
+     hx-get="{{ url_for('show_edit_activity', activity_id=activity.id) }}"
      hx-target="#modal-container"
      hx-trigger="dblclick"
      hx-swap="innerHTML">
@@ -38,7 +38,7 @@ Contraintes:
                 <input type="checkbox" 
                     class="form-checkbox h-3 w-3 text-blue-600 transition duration-150 ease-in-out"
                     {% if activity.is_completed %}checked{% endif %}
-                    hx-post="{{ url_for('activity.complete_activity', id=activity.id) if not activity.is_completed else url_for('activity.uncomplete_activity', id=activity.id) }}"
+                    hx-post="{{ url_for('edit_activity_completion', activity_id=activity.id, action='toggle') }}"
                     hx-trigger="click"
                     hx-swap="outerHTML"
                     hx-target="closest .activity-card">

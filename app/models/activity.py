@@ -23,6 +23,11 @@ class DurationSize(Enum):
     LARGE = 'L'
 
 class Activity(db.Model):
+    
+    # ==================================================================
+    # Modèle de données
+    # ==================================================================
+    
     __tablename__ = 'activities'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -70,6 +75,10 @@ class Activity(db.Model):
         db.session.commit()
         return self
     
+    # ==================================================================
+    # Constructeur
+    # ==================================================================
+    
     def __init__(self, title, list_id, **kwargs):
         self.title = title
         self.list_id = list_id
@@ -104,12 +113,26 @@ class Activity(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
     
-    def mark_as_completed(self):
-        """Marque l'activité comme terminée et enregistre la date/heure"""
-        self.is_completed = True
-        self.completed_at = datetime.now(timezone.utc)
+    # ===================================================================
+    # Méthodes
+    # ===================================================================
     
-    def mark_as_current_week(self):
+    def set_completion(self, status):
+        """
+        Définit l'état de complétion de l'activité.
+        
+        Args:
+            status (bool): Nouvel état de complétion (True pour terminé, False pour non terminé)
+        """
+        self.is_completed = status
+        
+        # Mise à jour de la date de complétion en fonction de l'état
+        if status:
+            self.completed_at = datetime.now(timezone.utc)
+        else:
+            self.completed_at = None
+    
+    def set_current_week(self):
         """Définit l'échéance à la fin de la semaine en cours"""
         today = date.today()
         # Calculer le nombre de jours jusqu'à dimanche (où lundi=0, dimanche=6)
@@ -118,8 +141,8 @@ class Activity(db.Model):
             self.due_date = today
         else:
             self.due_date = today + timedelta(days=days_until_sunday)
-    
-    def mark_as_next_week(self):
+
+    def set_next_week(self):
         """Définit l'échéance à la fin de la semaine prochaine"""
         today = date.today()
         # Calculer le nombre de jours jusqu'au dimanche prochain
@@ -139,7 +162,7 @@ class Activity(db.Model):
             position=self.position + 1,   # Positionner après l'activité originale
             is_active=True
         )
-        # La nouvelle activité n'est jamais complétée
+        # La nouvelle activité n'est jamais complétée par défaut
         new_activity.is_completed = False
         new_activity.completed_at = None
         
@@ -169,6 +192,7 @@ class Activity(db.Model):
         return 0
     
     # Méthodes d'accès aux données enrichies
+
     @classmethod
     def get_by_id(cls, id):
         """Récupère une activité par son ID."""
@@ -307,7 +331,7 @@ class Activity(db.Model):
             return False
     
     @classmethod
-    def duplicate_activity(cls, id):
+    def create_duplicate(cls, id):
         """
         Duplique une activité existante.
         

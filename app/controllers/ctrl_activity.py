@@ -194,50 +194,25 @@ def delete_activity(id):
     
     return True, f"Activité '{activity_title}' supprimée avec succès"
 
-def mark_activity_as_completed(id):
+def update_completion(activity_id):
     """
-    Marque une activité comme terminée.
+    Met à jour l'état de complétion d'une activité (bascule entre terminé et non terminé).
     
     Args:
-        id (int): Identifiant unique de l'activité
+        activity_id (int): Identifiant unique de l'activité
         
     Returns:
         tuple: (succès, données/message)
             - Si succès: (True, objet Activity mis à jour)
             - Si échec: (False, message d'erreur)
     """
-    activity = Activity.get_by_id(id)
+    activity = Activity.get_by_id(activity_id)
     if not activity:
         return False, "Activité non trouvée"
     
-    activity.mark_as_completed()
-    try:
-        # Nous utilisons save pour garantir la persistance des modifications
-        updated_activity = activity.save()
-        if not updated_activity:
-            return False, "Erreur lors de la mise à jour du statut de l'activité"
-        return True, updated_activity
-    except Exception as e:
-        return False, str(e)
-
-def mark_activity_as_uncompleted(id):
-    """
-    Marque une activité comme non terminée.
-    
-    Args:
-        id (int): Identifiant unique de l'activité
-        
-    Returns:
-        tuple: (succès, données/message)
-            - Si succès: (True, objet Activity mis à jour)
-            - Si échec: (False, message d'erreur)
-    """
-    activity = Activity.get_by_id(id)
-    if not activity:
-        return False, "Activité non trouvée"
-    
-    activity.is_completed = False
-    activity.completed_at = None
+    # Basculer l'état de complétion
+    new_status = not activity.is_completed
+    activity.set_completion(new_status)
     
     try:
         updated_activity = activity.save()

@@ -18,8 +18,17 @@ Contraintes:
 from flask import render_template, redirect, url_for, request, flash, jsonify
 from werkzeug.exceptions import NotFound
 
+# Importation du décorateur qui gère les formats des données de requête
+from app.utils.request_format_utils import parse_request_data
+
 # Importation des contrôleurs
+from app.controllers import ctrl_activity
 from app.controllers import ctrl_list
+from app.controllers import ctrl_sublist
+from app.controllers import ctrl_timetable
+from app.controllers import ctrl_weekly_goal
+from app.controllers import ctrl_settings
+
 
 def register_routes(app):
     """
@@ -34,7 +43,7 @@ def register_routes(app):
     # =========================================================================
     
     @app.route('/')
-    def dashboard():
+    def show_dashboard():
         """Page d'accueil - Tableau de bord principal avec les 3 colonnes."""
         return render_template('pages/dashboard.html')
     
@@ -57,7 +66,102 @@ def register_routes(app):
         """Gestion des erreurs 500."""
         return render_template('errors/500.html'), 500
 
+    # =========================================================================
+    # Routes pour les paramètres (settings)
+    # =========================================================================
     
+    @app.route('/settings', methods=['PUT', 'POST'])
+    @parse_request_data
+    def edit_settings():
+        """
+        Met à jour les paramètres de l'application.
+    
+        Cette route est appelée par HTMX lors de la soumission du formulaire de paramètres.
+
+        Retourne:
+        - Si succès: Réponse JSON avec les paramètres mis à jour
+        - Si échec: Réponse JSON avec le message d'erreur
+        """
+        success, data = ctrl_settings.update_settings(request.parsed_data)
+    
+        if not success:
+            return jsonify({"success": False, "error": data}), 400
+    
+        return jsonify({"success": True, "data": data}), 200
+
+
+
+    # =========================================================================
+    # Routes pour les activités
+    # =========================================================================
+    
+    @app.route('/modals/edit-activity/<int:activity_id>')
+    def show_edit_activity(activity_id):
+        """
+        Affiche le formulaire d'édition d'une activité.
+        
+        Cette route est appelée par HTMX pour ouvrir la modale d'édition
+        pré-remplie avec les données de l'activité existante.
+        
+        Paramètres:
+        - activity_id: Identifiant unique de l'activité à modifier
+        
+        Retourne:
+        - Rendu HTML du formulaire d'édition d'activité
+        - Erreur 404 si l'activité n'existe pas
+        """
+        success, activity_data = ctrl_activity.get_activity(activity_id)
+        if not success:
+            return NotFound(activity_data)
+        
+        # Récupérer les listes et sous-listes pour le formulaire
+        lists = ctrl_list.get_all_lists()
+        
+        # Si l'activité est dans une liste, récupérer ses sous-listes
+        sublists = []
+        if activity_data.list_id:
+            success, data = ctrl_list.get_list_with_sublists(activity_data.list_id)
+            if success:
+                sublists = data["sublists"]
+        
+        return render_template('modals/create_edit_activity_modal.html', 
+                            title="Modifier une activité",
+                            activity=activity_data,
+                            lists=lists,
+                            sublists=sublists,
+                            activity_id=activity_id)
+    @app.route('/activities/<int:activity_id>/edit_completion', methods=['POST'])
+    def edit_activity_completion(activity_id):
+        """
+        Modifie l'état de complétion d'une activité.
+        
+        Cette route est appelée par HTMX lorsque l'utilisateur clique sur la case à cocher.
+        
+        Paramètres:
+        - activity_id: Identifiant unique de l'activité
+        
+        Retourne:
+        - Rendu HTML mis à jour de la carte d'activité
+        - Erreur 404 si l'activité n'existe pas
+        """
+        success, result = ctrl_activity.update_completion(activity_id)
+        
+        if not success:
+            return NotFound(result)
+        
+        # Récupérer les informations de liste pour la couleur
+        list_color = "#3C91E6"  # Couleur par défaut
+        if result.list_id:
+            success, list_data = ctrl_list.get_list(result.list_id)
+            if success:
+                list_color = list_data.color_code
+        
+        # Renvoyer la carte mise à jour
+        return render_template('components/activity_card.html', 
+                            activity=result, 
+                            list_color=list_color)
+
+
     # =========================================================================
     # Routes pour les listes
     # =========================================================================
@@ -102,7 +206,7 @@ def register_routes(app):
         )
     
     @app.route('/modals/create-list')
-    def new_list():
+    def show_new_list():
         """
         Affiche le formulaire de création de liste.
         
@@ -115,7 +219,7 @@ def register_routes(app):
                               title="Créer une liste")
     
     @app.route('/modals/edit-list/<int:list_id>')
-    def edit_list(list_id):
+    def show_edit_list(list_id):
         """
         Affiche le formulaire d'édition de liste.
         
@@ -140,7 +244,7 @@ def register_routes(app):
     
     @app.route('/lists', methods=['POST'])
     @parse_request_data
-    def create_list():
+    def new_list():
         """
         Crée une nouvelle liste.
         
@@ -159,7 +263,7 @@ def register_routes(app):
     
     @app.route('/lists/<int:list_id>', methods=['POST', 'PUT'])
     @parse_request_data
-    def update_list(list_id):
+    def edit_list(list_id):
         """
         Met à jour une liste existante.
         
@@ -180,7 +284,7 @@ def register_routes(app):
         return jsonify(data.to_dict()), 200
     
     @app.route('/lists/<int:list_id>', methods=['DELETE'])
-    def delete_list(list_id):
+    def erase_list(list_id):
         """
         Supprime une liste.
         
