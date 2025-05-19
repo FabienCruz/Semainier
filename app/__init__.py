@@ -44,7 +44,7 @@ def create_app():
     from app.models import List, Sublist, Activity, Settings, WeeklyGoal
     
     # Enregistrement des routes centralisées via le routeur
-    from app.controllers.router import register_routes
+    from app.routes import register_routes
     register_routes(app)
     """
     # Enregistrement des filtres personnalisés
