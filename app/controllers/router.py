@@ -46,12 +46,16 @@ def register_routes(app):
     def show_dashboard():
         """Page d'accueil - Tableau de bord principal avec les 3 colonnes."""
         return render_template('pages/dashboard.html')
-    
     @app.route('/settings')
     def show_settings():
         """Page des paramètres de l'application."""
-        return render_template('pages/settings.html')
-    
+        # Récupérer les paramètres actuels pour les afficher dans le template
+        success, settings_data = ctrl_settings.get_settings()
+        if not success:
+            flash(settings_data, "error")
+            settings_data = {}  # Utiliser un dictionnaire vide en cas d'erreur
+            
+        return render_template('pages/settings.html', settings=settings_data)
     # =========================================================================
     # Gestionnaires d'erreurs
     # =========================================================================
@@ -69,13 +73,13 @@ def register_routes(app):
     # =========================================================================
     # Routes pour les paramètres (settings)
     # =========================================================================
-    
-    @app.route('/settings', methods=['PUT', 'POST'])
+        
+    @app.route('/settings/update', methods=['PUT', 'POST'])
     @parse_request_data
     def edit_settings():
         """
         Met à jour les paramètres de l'application.
-    
+
         Cette route est appelée par HTMX lors de la soumission du formulaire de paramètres.
 
         Retourne:
@@ -83,10 +87,10 @@ def register_routes(app):
         - Si échec: Réponse JSON avec le message d'erreur
         """
         success, data = ctrl_settings.update_settings(request.parsed_data)
-    
+
         if not success:
             return jsonify({"success": False, "error": data}), 400
-    
+
         return jsonify({"success": True, "data": data}), 200
 
     # =========================================================================
@@ -175,7 +179,7 @@ def register_routes(app):
         # Si l'activité est dans une liste, récupérer ses sous-listes
         sublists = []
         if activity_data.list_id:
-            success, data = ctrl_list.get_list_with_sublists(activity_data.list_id)
+            success, data = ctrl_list.get_list_with_content(activity_data.list_id)
             if success:
                 sublists = data["sublists"]
         
@@ -818,3 +822,68 @@ def register_routes(app):
                             priority_activities=priority_activities,
                             standard_activities=standard_activities,
                             server_date_info=server_date_info)
+    
+    # =========================================================================
+    # Routes pour l'emploi du temps
+    # =========================================================================
+
+    @app.route('/timetable', defaults={'direction': None})
+    @app.route('/timetable/<string:direction>')
+    def show_timetable(direction):
+        """
+        Affiche la colonne Emploi du temps pour un jour spécifique.
+        
+        Cette route permet également de naviguer entre les jours de la semaine
+        en utilisant les paramètres de direction ('prev' ou 'next').
+        
+        Paramètres:
+        - direction (str, optionnel): Direction de navigation ('prev' ou 'next')
+        
+        Paramètres de requête:
+        - current_date (str, optionnel): Date actuellement affichée au format YYYY-MM-DD
+        
+        Retourne:
+        - Rendu HTML de la colonne emploi du temps
+        """
+        from datetime import date
+        
+        # Récupérer la date courante dans les paramètres de requête
+        current_date_str = request.args.get('current_date')
+        
+        # Déterminer la date cible
+        if current_date_str:
+            try:
+                from app.utils.date_utils import get_date_from_string
+                current_date = get_date_from_string(current_date_str)
+            except ValueError:
+                current_date = date.today()
+        else:
+            current_date = date.today()
+        
+        # Si une direction est spécifiée, naviguer vers le jour précédent/suivant
+        if direction:
+            success, target_date = ctrl_timetable.navigate_to_day(current_date, direction)
+            if not success:
+                flash(target_date, "error")
+                target_date = current_date
+        else:
+            target_date = current_date
+        
+        # Récupérer les données de l'emploi du temps pour la date cible
+        success, timetable_data = ctrl_timetable.get_timetable_data(target_date)
+        
+        if not success:
+            flash(timetable_data, "error")
+            # Récupérer les informations de date du serveur pour affichage de secours
+            from app.utils.date_utils import get_server_date_info
+            server_date_info = get_server_date_info()
+            return render_template('components/timetable_column.html', server_date_info=server_date_info)
+        
+        # Préparer les données pour le template
+        return render_template(
+            'components/timetable_column.html',
+            current_day_info=timetable_data['day_info'],
+            time_slots=timetable_data['formatted_slots'],  # Utiliser les créneaux déjà formatés
+            settings=timetable_data['settings'],
+            activities=timetable_data['activities']
+        )

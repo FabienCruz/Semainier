@@ -1,13 +1,24 @@
-<div>
-    <!-- Navigation des jours de la semaine -->
-    <div class="flex justify-between items-center mb-4">
-        <button class="px-2 py-1 bg-gray-200 rounded">&lt;</button>
-        <span class="font-medium">Aujourd'hui</span>
-        <button class="px-2 py-1 bg-gray-200 rounded">&gt;</button>
-    </div>
+<div id="column-timetable" class="h-full flex flex-col bg-white rounded-lg shadow-md overflow-hidden" 
+     x-data="{ isOpen: window.innerWidth >= 768 }" 
+     :class="{ 'w-full md:w-1/3 lg:w-1/4': isOpen, 'w-auto': !isOpen }">
     
-    <!-- Grille horaire -->
-    <div id="time-grid" class="space-y-2">
-        <p class="text-gray-500">Chargement de l'emploi du temps...</p>
+    {% if current_day_info or server_date_info %}
+        <!-- Si les données sont disponibles, utiliser le composant timetable_column -->
+        {% include 'components/timetable_column.html' %}
+    {% else %}
+
+    <div>
+        <!-- Navigation des jours de la semaine -->
+        <div class="flex justify-between items-center mb-4">
+            <button class="px-2 py-1 bg-gray-200 rounded">&lt;</button>
+            <span class="font-medium">Aujourd'hui</span>
+            <button class="px-2 py-1 bg-gray-200 rounded">&gt;</button>
+        </div>
+        
+        <!-- Grille horaire -->
+        <div id="time-grid" class="space-y-2">
+            <p class="text-gray-500">Chargement de l'emploi du temps...</p>
+        </div>
     </div>
+    {% endif %}
 </div>

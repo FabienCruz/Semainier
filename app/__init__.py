@@ -46,13 +46,14 @@ def create_app():
     # Enregistrement des routes centralisées via le routeur
     from app.controllers.router import register_routes
     register_routes(app)
-  
+    """
     # Enregistrement des filtres personnalisés
     from app.utils.date_utils import format_time
     
     @app.template_filter('format_time')
     def format_time_filter(time_str):
         return format_time(time_str)
+    """
 
     # Initialisation des paramètres par défaut au démarrage de l'application
     with app.app_context():

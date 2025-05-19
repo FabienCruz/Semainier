@@ -19,7 +19,7 @@
             <!-- Bouton d'ajout de liste -->
             <button 
                 class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 md:px-3 md:py-1 rounded-md text-xs md:text-sm"
-                hx-get="{{ url_for('views.get_list_form') }}"
+                hx-get="{{ url_for('show_new_list') }}"
                 hx-target="#modal-container"
                 hx-trigger="click">
                 <i class="fas fa-plus mr-1"></i> Liste
@@ -71,14 +71,14 @@
                             <div class="flex space-x-1">
                                 <button 
                                     class="text-gray-500 hover:text-blue-500 text-xs md:text-sm"
-                                    hx-get="{{ url_for('views.get_list_form', list_id=list.id) }}"
+                                    hx-get="{{ url_for('show_new_list', list_id=list.id) }}"
                                     hx-target="#modal-container"
                                     hx-trigger="click">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button 
                                     class="text-gray-500 hover:text-red-500 text-xs md:text-sm"
-                                    hx-get="{{ url_for('views.get_delete_confirmation', type='list', id=list.id) }}"
+                                    hx-get="{{ url_for('show_erase', type='list', id=list.id) }}"
                                     hx-target="#modal-container"
                                     hx-trigger="click">
                                     <i class="fas fa-trash"></i>
@@ -105,14 +105,14 @@
                                 <div class="flex space-x-1">
                                     <button 
                                         class="text-gray-500 hover:text-blue-500 text-xs md:text-sm"
-                                        hx-get="{{ url_for('views.get_sublist_form', sublist_id=sublist.id) }}"
+                                        hx-get="{{ url_for('show_new_sublist', sublist_id=sublist.id) }}"
                                         hx-target="#modal-container"
                                         hx-trigger="click">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button 
                                         class="text-gray-500 hover:text-red-500 text-xs md:text-sm"
-                                        hx-get="{{ url_for('views.get_delete_confirmation', type='sublist', id=sublist.id) }}"
+                                        hx-get="{{ url_for('show_erase', type='sublist', id=sublist.id) }}"
                                         hx-target="#modal-container"
                                         hx-trigger="click">
                                         <i class="fas fa-trash"></i>

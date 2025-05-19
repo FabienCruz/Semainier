@@ -23,7 +23,7 @@ Contraintes:
 """
 
 from app.models.weekly_goals import WeeklyGoal
-from app.utils.date_utils import get_week_info_for_date
+from app.utils.date_utils import get_server_date_info, get_week_bounds
 from datetime import date
 
 def get_weekly_goal(week_start=None):
@@ -110,7 +110,17 @@ def get_weekly_goal_with_week_info(week_start=None):
         current_date = date.today() if week_start is None else week_start
         
         # Obtenir les informations de la semaine
-        week_info = get_week_info_for_date(current_date)
+        # Utiliser get_server_date_info() au lieu de get_week_info_for_date()
+        week_info = get_server_date_info()
+        
+        # Si une date spécifique est fournie, recalculer les bornes de semaine
+        if week_start is not None:
+            start_date, end_date = get_week_bounds(week_start)
+            week_info.update({
+                'week_start': start_date.isoformat(),
+                'week_end': end_date.isoformat(),
+                'is_current_week': False  # Ce n'est pas la semaine courante si date spécifiée
+            })
         
         # Créer un dictionnaire de réponse
         response_data = {

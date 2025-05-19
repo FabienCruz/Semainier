@@ -74,7 +74,7 @@ def create_list(data):
     
     # Vérification que le nom n'existe pas déjà
     if List.query.filter_by(name=data['name']).first():
-        return False, "Une l[48;38;116;1520;2320tiste avec ce nom existe déjà"
+        return False, "Une liste avec ce nom existe déjà"
     
     # Création de la liste
     list_obj = List(

@@ -1,17 +1,28 @@
-<div>
-    <!-- Section des activités prioritaires -->
-    <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-2 text-danger">Prioritaires</h3>
-        <div id="priority-activities" class="space-y-3">
-            <p class="text-gray-500">Aucune activité prioritaire</p>
-        </div>
-    </div>
+<div id="column-objectives" class="h-full flex flex-col bg-white rounded-lg shadow-md overflow-hidden" 
+     x-data="{ isOpen: window.innerWidth >= 768 }" 
+     :class="{ 'w-full md:w-1/3 lg:w-1/4': isOpen, 'w-auto': !isOpen }">
     
-    <!-- Section des activités standards -->
-    <div>
-        <h3 class="text-lg font-semibold mb-2">Standards</h3>
-        <div id="standard-activities" class="space-y-3">
-            <p class="text-gray-500">Aucune activité standard</p>
+    {% if server_date_info or priority_activities or standard_activities %}
+        <!-- Si les données sont disponibles, utiliser le composant objectives_column -->
+        {% include 'components/objectives_column.html' %}
+    {% else %}
+        <!-- Fallback si aucune donnée n'est disponible -->
+        <div>
+            <!-- Section des activités prioritaires -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2 text-danger">Prioritaires</h3>
+                <div id="priority-activities" class="space-y-3">
+                    <p class="text-gray-500">Aucune activité prioritaire</p>
+                </div>
+            </div>
+            
+            <!-- Section des activités standards -->
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Standards</h3>
+                <div id="standard-activities" class="space-y-3">
+                    <p class="text-gray-500">Aucune activité standard</p>
+                </div>
+            </div>
         </div>
-    </div>
+    {% endif %}
 </div>

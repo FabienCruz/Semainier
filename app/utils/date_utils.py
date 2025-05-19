@@ -147,3 +147,21 @@ def get_date_status(date):
         return 'future'
     else:
         return 'today'
+
+def get_date_from_string(date_str: str) -> date:
+    """
+    Convertit une chaîne de caractères au format YYYY-MM-DD en objet date
+    
+    Args:
+        date_str: Date au format YYYY-MM-DD
+        
+    Returns:
+        date: Objet date correspondant
+        
+    Raises:
+        ValueError: Si le format de date est invalide
+    """
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        raise ValueError(f"Format de date invalide: {date_str}. Format attendu: YYYY-MM-DD")
