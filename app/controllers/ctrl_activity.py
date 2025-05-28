@@ -238,7 +238,7 @@ def set_activity_current_week(id):
     if not activity:
         return False, "Activité non trouvée"
     
-    activity.mark_as_current_week()
+    activity.set_current_week()
     
     try:
         updated_activity = activity.save()
@@ -264,7 +264,7 @@ def set_activity_next_week(id):
     if not activity:
         return False, "Activité non trouvée"
     
-    activity.mark_as_next_week()
+    activity.set_next_week()
     
     try:
         updated_activity = activity.save()
@@ -286,7 +286,7 @@ def duplicate_activity(id):
             - Si succès: (True, objet Activity nouvellement créé)
             - Si échec: (False, message d'erreur)
     """
-    result = Activity.duplicate_activity(id)
+    result = Activity.create_duplicate(id)
     if not result:
         return False, "Erreur lors de la duplication de l'activité"
     

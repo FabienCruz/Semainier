@@ -14,8 +14,11 @@
     <!-- Feuille de style personnalisée -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/semainier.css') }}">
     
-    <!-- HTMX -->
+    <!-- HTMX pour les appels serveur -->
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    
+    <!-- Sortable.js pour le glisser-déposer -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>    
     
     <!-- Alpine.js pour les interactions -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>

@@ -159,25 +159,18 @@ class Activity(db.Model):
             due_date=date(2099, 12, 31),  # Date par défaut pour la duplication
             start_time=time(23, 59),      # Heure par défaut pour la duplication
             is_priority=self.is_priority,
-            position=self.position + 1,   # Positionner après l'activité originale
+            position=0,   # Positionner au début par défaut
             is_active=True
         )
         # La nouvelle activité n'est jamais complétée par défaut
         new_activity.is_completed = False
         new_activity.completed_at = None
-        
-        # Décaler les positions des activités suivantes
-        following_activities = Activity.query.filter(
-            Activity.list_id == self.list_id,
-            Activity.sublist_id == self.sublist_id,
-            Activity.position > self.position
-        ).all()
-        
-        for act in following_activities:
-            act.position += 1
             
         db.session.add(new_activity)
         db.session.commit()
+
+        # Réinitialiser les positions après duplication
+        Activity.reorder_positions(new_activity.list_id, new_activity.sublist_id)
         
         return new_activity
     
@@ -273,7 +266,12 @@ class Activity(db.Model):
                 activity.is_active = data['is_active']
             
             # Sauvegarde avec validation
-            return activity.save()
+            activity.save()
+            # Réorganiser les positions après création
+            cls.reorder_positions(activity.list_id, activity.sublist_id)
+            
+            return activity
+        
         except Exception as e:
             db.session.rollback()
             return None
@@ -346,3 +344,33 @@ class Activity(db.Model):
             return None
         
         return activity.duplicate()
+    
+    @classmethod
+    def reorder_positions(cls, list_id, sublist_id=None):
+        """
+        Réorganise les positions des activités dans un conteneur (liste ou sous-liste).
+        Assigne des positions séquentielles : 1, 2, 3, etc.
+        
+        Args:
+            list_id (int): ID de la liste parente
+            sublist_id (int, optional): ID de la sous-liste (None pour la liste racine)
+        
+        Returns:
+            bool: True si succès, False sinon
+        """
+        try:
+            # Récupérer toutes les activités du conteneur, triées par position
+            activities = cls.query.filter_by(
+                list_id=list_id, 
+                sublist_id=sublist_id
+            ).order_by(cls.position).all()
+            
+            # Réassigner les positions séquentiellement
+            for index, activity in enumerate(activities, start=1):
+                activity.position = index
+            
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            return False
