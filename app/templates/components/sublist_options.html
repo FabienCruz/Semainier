@@ -1,5 +1,5 @@
 <!-- app/templates/components/sublist_options.html -->
-<option value="">Aucune sous-liste</option>
+<option value="0">Aucune sous-liste</option>
 {% for sublist in sublists %}
-<option value="{{ sublist.id }}">{{ sublist.name }}</option>
+    <option value="{{ sublist.id }}">{{ sublist.name }}</option>
 {% endfor %}

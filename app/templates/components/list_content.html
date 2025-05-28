@@ -23,26 +23,16 @@ Contraintes:
 -->
 
 <div class="list-content p-3">
-    <!-- Section 1: Sous-liste virtuelle par défaut (pour les activités sans sous-liste) -->
-    {% if activities %}
-        <div class="default-activities-container mb-3">
-            <div class="list-activities grid gap-2">
-                {% for activity in activities %}
-                    <div class="activity-wrapper">
-                        {% with activity=activity, list_color=list_item.color_code %}
-                            {% include 'components/activity_card.html' %}
-                        {% endwith %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
 
-    <!-- Section 2: Sous-listes réelles avec leurs activités -->
+    <!-- Sous-listes avec leurs activités -->
     {% if sublists %}
         {% for sublist in sublists %}
-            <div class="sublist-container mb-3" x-data="{ isOpen: true }">
-                <!-- En-tête de sous-liste -->
+            <div class="sublist-container mb-3" 
+                x-data="{ isOpen: true }"
+                data-sortable-group="{{ list_item.id }}-{{ sublist.id }}">
+
+                {% if sublist.id != 0 %}
+                <!-- En-tête de sous-liste non virtuelle -->
                 <div class="sublist-header flex items-center justify-between p-2 bg-gray-100 mb-2">
                     
                     <!-- Nom de la sous-liste -->
@@ -97,6 +87,7 @@ Contraintes:
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 
                 <!-- Activités de la sous-liste -->
                 <div x-show="isOpen" 
@@ -111,16 +102,12 @@ Contraintes:
                     {% if sublist.activities %}
                         <div class="grid gap-2">
                             {% for activity in sublist.activities %}
-                                <div class="activity-wrapper">
+                                <div class="activity-wrapper" sortable-activity>
                                     {% with activity=activity, list_color=list_item.color_code %}
                                         {% include 'components/activity_card.html' %}
                                     {% endwith %}
                                 </div>
                             {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="empty-sublist-state p-2 text-center text-gray-500 text-sm italic">
-                            Aucune activité dans cette sous-liste
                         </div>
                     {% endif %}
                 </div>

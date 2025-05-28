@@ -59,8 +59,18 @@ class Sublist(db.Model):
     
     @classmethod
     def get_by_list_id(cls, list_id):
-        """Récupère toutes les sous-listes d'une liste spécifique."""
-        return cls.query.filter_by(list_id=list_id).order_by(cls.position).all()
+        """Récupère toutes les sous-listes d'une liste spécifique, y compris la sous-liste virtuelle."""
+        sublists = cls.query.filter_by(list_id=list_id).order_by(cls.position).all()
+        
+        # Ajouter la sous-liste virtuelle au début de la liste
+        sublists.insert(0, {
+            'id': 0,
+            'name': 'Aucune sous-liste',
+            'list_id': list_id,
+            'position': 0
+        })
+        
+        return sublists
     
     @classmethod
     def exists_with_name_in_list(cls, name, list_id, exclude_id=None):

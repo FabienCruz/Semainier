@@ -208,7 +208,7 @@ def register_sublist_routes(app):
         sublists = []
         
         if list_id:
-            success, data = ctrl_list.get_list_with_sublists(list_id)
+            success, data = ctrl_list.get_list_with_content(list_id)
             if success:
                 sublists = data["sublists"]
         

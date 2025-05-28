@@ -173,27 +173,3 @@ def register_list_routes(app):
         
         return jsonify({"message": message}), 200
     
-    @app.route('/lists/<int:list_id>/sublists')
-    def get_list_with_sublists(list_id):
-        """
-        Récupère une liste avec ses sous-listes.
-        
-        Cette route est utilisée pour obtenir les sous-listes d'une liste spécifique,
-        notamment pour peupler dynamiquement les sélecteurs de sous-listes.
-        
-        Paramètres:
-        - list_id: Identifiant unique de la liste
-        
-        Retourne:
-        - Si succès: Réponse JSON avec la liste et ses sous-listes
-        - Si échec: Réponse JSON avec le message d'erreur
-        """
-        success, data = ctrl_list.get_list_with_content(list_id)
-        
-        if not success:
-            return jsonify({"error": data}), 404
-        
-        return jsonify({
-            "list": data["list"].to_dict() if "list" in data else None,
-            "sublists": [s.to_dict() for s in data["sublists"]] if "sublists" in data else []
-        }), 200

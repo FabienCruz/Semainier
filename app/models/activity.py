@@ -33,7 +33,7 @@ class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     list_id = db.Column(db.Integer, db.ForeignKey('lists.id', ondelete='CASCADE'), nullable=False)
-    sublist_id = db.Column(db.Integer, db.ForeignKey('sublists.id', ondelete='SET NULL'), nullable=True)
+    sublist_id = db.Column(db.Integer, db.ForeignKey('sublists.id', ondelete='SET DEFAULT'), default=0, nullable=False)
     
     # Durée et échéance
     duration = db.Column(db.Enum(DurationSize), default=DurationSize.SMALL)
@@ -58,7 +58,7 @@ class Activity(db.Model):
     @staticmethod
     def validate_sublist_belongs_to_list(list_id, sublist_id):
         """Vérifie que la sous-liste appartient bien à la liste parente."""
-        if sublist_id is None:
+        if sublist_id == 0:
             return True
         
         from app.models.sublist import Sublist
@@ -84,7 +84,7 @@ class Activity(db.Model):
         self.list_id = list_id
         
         # Attributs optionnels
-        self.sublist_id = kwargs.get('sublist_id')
+        self.sublist_id = kwargs.get('sublist_id', 0)
         self.duration = kwargs.get('duration', DurationSize.SMALL)
         self.due_date = kwargs.get('due_date', date(2099, 12, 31))
         self.start_time = kwargs.get('start_time', time(23, 59))
