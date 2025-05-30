@@ -2,10 +2,7 @@
 {% extends "base_modal.html" %}
 
 {% block modal_content %}
-<form id="activity-form" 
-      hx-post="{{ url_for('new_activity') if not activity_id else url_for('edit_activity', activity_id=activity_id) }}"
-      hx-swap="none"
-      hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
+<form id="activity-form">
     
     <!-- Champ caché pour l'ID en cas d'édition -->
     {% if activity_id %}
@@ -45,7 +42,9 @@
                 hx-get="{{ url_for('show_sublists_for_list') }}"
                 hx-target="#sublist_id"
                 hx-trigger="change"
-                hx-include="[name='list_id']">
+                hx-include="[name='list_id']"
+                hx-swap="innerHTML"
+                hx-on::before-request="event.stopPropagation()">
             <option value="" disabled {% if not selected_list_id and not activity %}selected{% endif %}>Sélectionner une liste...</option>
             {% for list in lists %}
             <option value="{{ list.id }}" 
@@ -60,16 +59,14 @@
     </div>
     
     <!-- Sélecteur de sous-liste (chargé dynamiquement) -->
-    <div class="mb-3">
+    <div class="mb-3" id="sublist-container">
         <label for="sublist_id" class="block text-sm font-medium text-gray-700 mb-1">Sous-liste (optionnel)</label>
         <select id="sublist_id" 
                 name="sublist_id" 
                 class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Aucune sous-liste</option>
             {% if sublists %}
                 {% for sublist in sublists %}
-                <option value="{{ sublist.id }}" 
-                        {% if activity and activity.sublist_id == sublist.id %}selected{% endif %}>
+                <option value="{{ sublist.id }}" {% if activity and activity.sublist_id == sublist.id %}selected{% endif %}>
                     {{ sublist.name }}
                 </option>
                 {% endfor %}
@@ -197,7 +194,11 @@
             </button>
             
             <!-- Rangée 2, Colonne 2 -->
-            <button type="submit" 
+            <button type="button"
+                    hx-post="{{ url_for('new_activity') if not activity_id else url_for('edit_activity', activity_id=activity_id) }}"
+                    hx-include="#activity-form"
+                    hx-swap="none"
+                    hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')"
                     class="flex items-center justify-center px-4 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm">
                 <i class="fas fa-check mr-2"></i>{{ 'Enregistrer' if activity_id else 'Créer' }}
             </button>
@@ -208,9 +209,9 @@
             Une erreur est survenue. Veuillez réessayer.
             </div>
 
+        </div>
     </div>  
 </form>
-</div>
 
 <!-- Remarque: les fonctions de date sont maintenant importées via le fichier date_utils.js -->
 <script>

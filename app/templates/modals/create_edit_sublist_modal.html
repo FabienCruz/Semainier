@@ -3,7 +3,7 @@
 
 {% block modal_content %}
 <form id="sublist-form" 
-      hx-post="{{ url_for('sublist.create_sublist') if not sublist_id else url_for('sublist.update_sublist', id=sublist_id) }}"
+      hx-post="{{ url_for('new_sublist') if not sublist_id else url_for('edit_sublist', sublist_id=sublist_id) }}"
       hx-swap="none"
       hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
     

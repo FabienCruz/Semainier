@@ -88,7 +88,7 @@ def create_activity(data):
         return False, "La liste spécifiée n'existe pas"
     
     # Validation de la sous-liste si fournie
-    if 'sublist_id' in data and data['sublist_id']:
+    if 'sublist_id' in data and data['sublist_id'] and data['sublist_id'] != 0:
         if not Activity.validate_sublist_belongs_to_list(data['list_id'], data['sublist_id']):
             return False, "La sous-liste n'appartient pas à la liste spécifiée"
     
@@ -138,12 +138,12 @@ def update_activity(id, data):
             return False, "La liste spécifiée n'existe pas"
     
     # Validation de la relation sous-liste/liste si les deux sont changés
-    if 'list_id' in data and 'sublist_id' in data and data['sublist_id']:
+    if 'list_id' in data and 'sublist_id' in data and data['sublist_id'] and data['sublist_id'] != 0:
         if not Activity.validate_sublist_belongs_to_list(data['list_id'], data['sublist_id']):
             return False, "La sous-liste n'appartient pas à la liste spécifiée"
     
     # Validation de la relation sous-liste/liste si seule la sous-liste est changée
-    elif 'sublist_id' in data and data['sublist_id']:
+    elif 'sublist_id' in data and data['sublist_id'] and data['sublist_id'] != 0:
         list_id = data.get('list_id', activity.list_id)
         if not Activity.validate_sublist_belongs_to_list(list_id, data['sublist_id']):
             return False, "La sous-liste n'appartient pas à la liste spécifiée"

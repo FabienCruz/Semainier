@@ -67,7 +67,7 @@ Contraintes:
                                         "label": "Modifier",
                                         "icon": "fa-edit",
                                         "action_type": "hx-get",
-                                        "action_url": url_for('show_new_sublist', sublist_id=sublist.id),
+                                        "action_url": url_for('show_edit_sublist', sublist_id=sublist.id),
                                         "target": "#modal-container",
                                         "swap": "innerHTML"
                                     },
@@ -75,7 +75,7 @@ Contraintes:
                                         "label": "Supprimer",
                                         "icon": "fa-trash-alt",
                                         "action_type": "hx-get",
-                                        "action_url": url_for('erase_sublist', type='sublist', sublist_id=sublist.id),
+                                        "action_url": url_for('show_erase', type='sublist', id=sublist.id),
                                         "target": "#modal-container",
                                         "swap": "innerHTML",
                                         "classes": "text-red-600 hover:bg-gray-100"

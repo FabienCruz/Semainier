@@ -3,7 +3,7 @@
 
 {% block modal_content %}
 <form id="list-form" 
-      hx-post="{{ url_for('list.create_list') if not list_id else url_for('list.update_list', id=list_id) }}"
+      hx-post="{{ url_for('new_list') if not list_id else url_for('edit_list', list_id=list_id) }}"
       hx-swap="none"
       hx-on::after-request="document.getElementById('modal-container').innerHTML = ''; htmx.trigger('#lists-container', 'refresh')">
     
@@ -75,8 +75,8 @@ document.addEventListener('htmx:responseError', function(event) {
     
     try {
         const response = JSON.parse(event.detail.xhr.responseText);
-        if (response.message) {
-            errorDiv.textContent = response.message;
+        if (response.error) {
+            errorDiv.textContent = response.error;
         } else {
             errorDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
         }

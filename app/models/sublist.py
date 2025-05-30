@@ -63,12 +63,12 @@ class Sublist(db.Model):
         sublists = cls.query.filter_by(list_id=list_id).order_by(cls.position).all()
         
         # Ajouter la sous-liste virtuelle au début de la liste
-        sublists.insert(0, {
-            'id': 0,
-            'name': 'Aucune sous-liste',
-            'list_id': list_id,
-            'position': 0
-        })
+        # Créer un objet Sublist virtuel (non persisté en base)
+        virtual_sublist = cls(name='Aucune sous-liste', list_id=list_id, position=0)
+        virtual_sublist.id = 0  # Forcer l'ID à 0 pour la sous-liste virtuelle
+    
+        # Insérer la sous-liste virtuelle au début
+        sublists.insert(0, virtual_sublist)
         
         return sublists
     
