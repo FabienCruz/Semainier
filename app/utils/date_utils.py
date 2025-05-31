@@ -36,60 +36,7 @@ def get_week_bounds(reference_date: Optional[Union[date, str]] = None) -> Tuple[
     
     return start_date, end_date
 
-def format_date_short(dt: Union[date, datetime, None]) -> str:
-    """
-    Formate une date au format "JJ/MM" (ex: "01/03")
-    
-    Args:
-        dt: Objet date ou datetime
-        
-    Returns:
-        str: Date formatée
-    """
-    if not dt:
-        return ""
-    
-    if isinstance(dt, datetime):
-        dt = dt.date()
-    
-    return f"{dt.day:02d}/{dt.month:02d}"
 
-def format_weekday_short(dt: Union[date, datetime, None]) -> str:
-    """
-    Formate le jour de la semaine en version courte (3 lettres)
-    
-    Args:
-        dt: Objet date ou datetime
-        
-    Returns:
-        str: Jour de la semaine formaté (ex: "lun")
-    """
-    if not dt:
-        return ""
-        
-    if isinstance(dt, datetime):
-        dt = dt.date()
-        
-    weekdays = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']
-    return weekdays[dt.weekday()]
-
-def format_date_full_short(dt: Union[date, datetime, None]) -> str:
-    """
-    Formate une date au format "jjj JJ/MM" (ex: "lun 01/03")
-    
-    Args:
-        dt: Objet date ou datetime
-        
-    Returns:
-        str: Date formatée
-    """
-    if not dt:
-        return ""
-    
-    if isinstance(dt, datetime):
-        dt = dt.date()
-        
-    return f"{format_weekday_short(dt)} {format_date_short(dt)}"
 
 def get_server_date_info() -> Dict:
     """
@@ -112,41 +59,14 @@ def get_server_date_info() -> Dict:
         day_date = start_date + timedelta(days=i)
         days.append({
             'date': day_date.isoformat(),
-            'day_name': ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'][i],
-            'day_short': format_weekday_short(day_date),
-            'display_date': format_date_full_short(day_date),
-            'is_past': day_date < today,
-            'is_today': day_date == today,
-            'is_future': day_date > today
         })
     
     return {
         'current_date': today.isoformat(),
         'week_start': start_date.isoformat(),
         'week_end': end_date.isoformat(),
-        'display_range': f"{format_date_full_short(start_date)} au {format_date_full_short(end_date)}",
-        'days': days,
         'is_current_week': True  # Toujours vrai pour la semaine courante
     }
-
-def get_date_status(date):
-    """
-    Détermine le statut d'une date par rapport à aujourd'hui
-    
-    Args:
-        date: Date à vérifier
-        
-    Returns:
-        str: 'past', 'today' ou 'future'
-    """
-    today = datetime.now().date()
-    
-    if date < today:
-        return 'past'
-    elif date > today:
-        return 'future'
-    else:
-        return 'today'
 
 def get_date_from_string(date_str: str) -> date:
     """
